@@ -52,6 +52,13 @@
   <!-- Float Menu Options -->
   <DC_FloatMenu_LoanTier>Request {0} silver loan</DC_FloatMenu_LoanTier>
   
+  <!-- Settlement Options -->
+  <DC_Settlement_ViewLedger>View Debt Ledger</DC_Settlement_ViewLedger>
+  <DC_Settlement_RequestLoan>Request Loan</DC_Settlement_RequestLoan>
+  <DC_Settlement_PayInterest>Pay Interest</DC_Settlement_PayInterest>
+  <DC_Settlement_PayFull>Pay Full Balance</DC_Settlement_PayFull>
+  <DC_Settlement_SendTribute>Send Tribute</DC_Settlement_SendTribute>
+  
   <!-- Ledger Dialog -->
   <DC_Dialog_Title>The Ledger - Debt Status</DC_Dialog_Title>
   <DC_Dialog_Status>Status: {0}</DC_Dialog_Status>
