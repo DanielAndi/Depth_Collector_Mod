@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "uKkD8/nWxJw=",
+  "success": true,
+  "projectFilePath": "/home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/DebtCollector.csproj",
+  "expectedPackageFiles": [
+    "/home/danielg/.nuget/packages/krafs.rimworld.ref/1.6.4633-beta/krafs.rimworld.ref.1.6.4633-beta.nupkg.sha512",
+    "/home/danielg/.nuget/packages/lib.harmony/2.3.3/lib.harmony.2.3.3.nupkg.sha512",
+    "/home/danielg/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "/home/danielg/.nuget/packages/microsoft.netframework.referenceassemblies.net48/1.0.3/microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

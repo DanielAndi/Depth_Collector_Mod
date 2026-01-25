@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <FactionDef ParentName="OutlanderFactionBase">
+    <defName>DC_Faction_TheLedger</defName>
+    <label>The Ledger</label>
+    <description>A secretive organization of financiers and enforcers. They offer loans to those in need, but their collection methods are notoriously brutal.</description>
+    <pawnSingular>collector</pawnSingular>
+    <pawnsPlural>collectors</pawnsPlural>
+    <listOrderPriority>50</listOrderPriority>
+    <settlementGenerationWeight>1</settlementGenerationWeight>
+    <requiredCountAtGameStart>1</requiredCountAtGameStart>
+    <maxCountAtGameStart>1</maxCountAtGameStart>
+    <canMakeRandomly>false</canMakeRandomly>
+    <canStageAttacks>true</canStageAttacks>
+    <leaderTitle>ledgermaster</leaderTitle>
+    <factionIconPath>World/WorldObjects/Expanding/Pirate</factionIconPath>
+    <colorSpectrum>
+      <li>(0.45, 0.45, 0.45)</li>
+      <li>(0.2, 0.2, 0.2)</li>
+    </colorSpectrum>
+    <permanentEnemy>false</permanentEnemy>
+    <hostileToFactionlessHumanlikes>false</hostileToFactionlessHumanlikes>
+    <hidden>false</hidden>
+    <autoFlee>true</autoFlee>
+    <canUseAvoidGrid>true</canUseAvoidGrid>
+    <fixedName>The Ledger</fixedName>
+    
+    <pawnGroupMakers Inherit="False">
+      <li>
+        <kindDef>Combat</kindDef>
+        <commonality>100</commonality>
+        <options>
+          <Mercenary_Gunner>10</Mercenary_Gunner>
+          <Mercenary_Heavy>6</Mercenary_Heavy>
+          <Mercenary_Slasher>6</Mercenary_Slasher>
+          <Mercenary_Sniper>4</Mercenary_Sniper>
+          <Mercenary_Elite>2</Mercenary_Elite>
+        </options>
+      </li>
+      <li>
+        <kindDef>Trader</kindDef>
+        <traders>
+          <Town_Trader>1</Town_Trader>
+        </traders>
+        <carriers>
+          <Muffalo>6</Muffalo>
+          <Dromedary>5</Dromedary>
+          <Alpaca>2.5</Alpaca>
+          <Elephant>2</Elephant>
+        </carriers>
+        <guards>
+          <Mercenary_Gunner>7</Mercenary_Gunner>
+          <Mercenary_Heavy>3</Mercenary_Heavy>
+          <Mercenary_Slasher>3</Mercenary_Slasher>
+        </guards>
+      </li>
+      <li>
+        <kindDef>Settlement</kindDef>
+        <options>
+          <Mercenary_Gunner>10</Mercenary_Gunner>
+          <Mercenary_Heavy>5</Mercenary_Heavy>
+          <Mercenary_Slasher>5</Mercenary_Slasher>
+          <Mercenary_Sniper>3</Mercenary_Sniper>
+          <Mercenary_Elite>2</Mercenary_Elite>
+          <Town_Trader>1</Town_Trader>
+        </options>
+      </li>
+    </pawnGroupMakers>
+  </FactionDef>
+</Defs>

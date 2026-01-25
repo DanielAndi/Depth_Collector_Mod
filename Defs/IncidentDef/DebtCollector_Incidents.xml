@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <!-- Collections Raid - triggered programmatically when debt goes unpaid -->
+  <IncidentDef>
+    <defName>DC_Incident_CollectionsRaid</defName>
+    <label>Ledger collections raid</label>
+    <category>ThreatBig</category>
+    <targetTags>
+      <li>Map_PlayerHome</li>
+    </targetTags>
+    <workerClass>DebtCollector.IncidentWorker_CollectionsRaid</workerClass>
+    <letterLabel>The Ledger Collects</letterLabel>
+    <letterText>The Ledger has come to collect. Pay what you owe in blood or silver.</letterText>
+    <letterDef>ThreatBig</letterDef>
+    <!-- Prevents storyteller from randomly firing this -->
+    <baseChance>0</baseChance>
+    <minThreatPoints>200</minThreatPoints>
+    <pointsScaleable>true</pointsScaleable>
+  </IncidentDef>
+</Defs>

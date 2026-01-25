@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <!-- Add the DebtCollector comp to the Comms Console for gizmo integration -->
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/ThingDef[defName="CommsConsole"]/comps</xpath>
+    <value>
+      <li Class="DebtCollector.CompProperties_DebtCollectorComms" />
+    </value>
+  </Operation>
+</Patch>

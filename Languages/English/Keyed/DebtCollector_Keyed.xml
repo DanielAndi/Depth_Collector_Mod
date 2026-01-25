@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Gizmo Labels -->
+  <DC_Gizmo_RequestLoan>Request Loan</DC_Gizmo_RequestLoan>
+  <DC_Gizmo_RequestLoan_Desc>Contact The Ledger to request a silver loan.</DC_Gizmo_RequestLoan_Desc>
+  <DC_Gizmo_PayInterest>Pay Interest</DC_Gizmo_PayInterest>
+  <DC_Gizmo_PayInterest_Desc>Pay the current interest due to The Ledger.</DC_Gizmo_PayInterest_Desc>
+  <DC_Gizmo_PayFull>Pay Full Balance</DC_Gizmo_PayFull>
+  <DC_Gizmo_PayFull_Desc>Pay off your entire debt to The Ledger.</DC_Gizmo_PayFull_Desc>
+  <DC_Gizmo_SendTribute>Send Tribute</DC_Gizmo_SendTribute>
+  <DC_Gizmo_SendTribute_Desc>Send tribute silver to The Ledger to restore your borrowing privileges.</DC_Gizmo_SendTribute_Desc>
+  <DC_Gizmo_ViewLedger>View Debt Ledger</DC_Gizmo_ViewLedger>
+  <DC_Gizmo_ViewLedger_Desc>View your current debt status with The Ledger.</DC_Gizmo_ViewLedger_Desc>
+
+  <!-- Letter Titles -->
+  <DC_Letter_LoanGranted_Title>Loan Granted</DC_Letter_LoanGranted_Title>
+  <DC_Letter_LoanGranted_Text>The Ledger has granted you a loan of {0} silver. Interest of {1} silver is due in {2} days. Do not miss a payment.</DC_Letter_LoanGranted_Text>
+
+  <DC_Letter_InterestDue_Title>Interest Payment Due</DC_Letter_InterestDue_Title>
+  <DC_Letter_InterestDue_Text>The Ledger demands {0} silver in interest. You have until tomorrow to pay. Failure to comply will be noted.</DC_Letter_InterestDue_Text>
+
+  <DC_Letter_InterestMissed_Title>Payment Missed</DC_Letter_InterestMissed_Title>
+  <DC_Letter_InterestMissed_Text>You have missed an interest payment to The Ledger. This is your {0} missed payment. After {1} missed payments, they will come to collect in full.</DC_Letter_InterestMissed_Text>
+
+  <DC_Letter_CollectionsNotice_Title>COLLECTIONS NOTICE</DC_Letter_CollectionsNotice_Title>
+  <DC_Letter_CollectionsNotice_Text>THE LEDGER DEMANDS FULL REPAYMENT.\n\nYou owe {0} silver. Pay by end of day or face forceful collection.\n\nThis is not a negotiation.</DC_Letter_CollectionsNotice_Text>
+
+  <DC_Letter_CollectionsRaid_Title>The Collectors Arrive</DC_Letter_CollectionsRaid_Title>
+  <DC_Letter_CollectionsRaid_Text>You failed to pay your debts. The Ledger's collectors have arrived to take what is owed - one way or another.</DC_Letter_CollectionsRaid_Text>
+
+  <DC_Letter_DebtSettled_Title>Debt Settled By Force</DC_Letter_DebtSettled_Title>
+  <DC_Letter_DebtSettled_Text>The collections raid has ended. The Ledger considers your debt settled... for now.\n\nYour borrowing privileges are suspended. Send tribute to restore them.</DC_Letter_DebtSettled_Text>
+
+  <DC_Letter_TributeSent_Title>Tribute Accepted</DC_Letter_TributeSent_Title>
+  <DC_Letter_TributeSent_Text>The Ledger has accepted your tribute of {0} silver. Your borrowing privileges have been restored. Do not disappoint us again.</DC_Letter_TributeSent_Text>
+
+  <!-- Messages -->
+  <DC_Message_NotEnoughSilver>Not enough silver. You need {0} silver but only have {1}.</DC_Message_NotEnoughSilver>
+  <DC_Message_AlreadyHaveLoan>You already have an active loan with The Ledger.</DC_Message_AlreadyHaveLoan>
+  <DC_Message_LockedOut>Your borrowing privileges are suspended. Send tribute to restore them.</DC_Message_LockedOut>
+  <DC_Message_NoDebt>You have no outstanding debt.</DC_Message_NoDebt>
+  <DC_Message_NoInterestDue>No interest payment is currently due.</DC_Message_NoInterestDue>
+  <DC_Message_PaymentSuccess>Payment of {0} silver sent to The Ledger.</DC_Message_PaymentSuccess>
+  <DC_Message_LoanReceived>{0} silver has been delivered to your colony.</DC_Message_LoanReceived>
+  <DC_Message_NoPoweredComms>Requires a powered comms console.</DC_Message_NoPoweredComms>
+  <DC_Message_NoLedgerFaction>Unable to contact The Ledger. Faction not found.</DC_Message_NoLedgerFaction>
+  <DC_Message_InCollections>You are in collections. Pay the full balance to avoid a raid.</DC_Message_InCollections>
+
+  <!-- Float Menu Options -->
+  <DC_FloatMenu_LoanTier>Request {0} silver loan</DC_FloatMenu_LoanTier>
+  
+  <!-- Ledger Dialog -->
+  <DC_Dialog_Title>The Ledger - Debt Status</DC_Dialog_Title>
+  <DC_Dialog_Status>Status: {0}</DC_Dialog_Status>
+  <DC_Dialog_Principal>Principal: {0} silver</DC_Dialog_Principal>
+  <DC_Dialog_Interest>Accrued Interest: {0} silver</DC_Dialog_Interest>
+  <DC_Dialog_TotalOwed>Total Owed: {0} silver</DC_Dialog_TotalOwed>
+  <DC_Dialog_NextDue>Next Payment Due: {0}</DC_Dialog_NextDue>
+  <DC_Dialog_MissedPayments>Missed Payments: {0}/{1}</DC_Dialog_MissedPayments>
+  <DC_Dialog_ColonySilver>Colony Silver: {0}</DC_Dialog_ColonySilver>
+  <DC_Dialog_TributeRequired>Tribute Required: {0} silver</DC_Dialog_TributeRequired>
+  <DC_Dialog_NoDebt>No outstanding debt.</DC_Dialog_NoDebt>
+  <DC_Dialog_Close>Close</DC_Dialog_Close>
+
+  <!-- Status Names -->
+  <DC_Status_None>No Debt</DC_Status_None>
+  <DC_Status_Current>Current</DC_Status_Current>
+  <DC_Status_Delinquent>Delinquent</DC_Status_Delinquent>
+  <DC_Status_Collections>COLLECTIONS</DC_Status_Collections>
+  <DC_Status_LockedOut>Locked Out</DC_Status_LockedOut>
+
+  <!-- Settings -->
+  <DC_Settings_Title>Debt Collector Settings</DC_Settings_Title>
+  <DC_Settings_InterestRate>Interest Rate (%)</DC_Settings_InterestRate>
+  <DC_Settings_InterestRate_Desc>Percentage of principal charged as interest each period.</DC_Settings_InterestRate_Desc>
+  <DC_Settings_InterestIntervalDays>Interest Interval (days)</DC_Settings_InterestIntervalDays>
+  <DC_Settings_InterestIntervalDays_Desc>Days between interest payments.</DC_Settings_InterestIntervalDays_Desc>
+  <DC_Settings_GraceMissedPayments>Grace Missed Payments</DC_Settings_GraceMissedPayments>
+  <DC_Settings_GraceMissedPayments_Desc>Number of missed payments before collections.</DC_Settings_GraceMissedPayments_Desc>
+  <DC_Settings_CollectionsDeadlineHours>Collections Deadline (hours)</DC_Settings_CollectionsDeadlineHours>
+  <DC_Settings_CollectionsDeadlineHours_Desc>Hours to pay after collections notice before raid.</DC_Settings_CollectionsDeadlineHours_Desc>
+  <DC_Settings_MinSettlementDistance>Min Settlement Distance (tiles)</DC_Settings_MinSettlementDistance>
+  <DC_Settings_MinSettlementDistance_Desc>Minimum tiles from player start for Ledger settlement.</DC_Settings_MinSettlementDistance_Desc>
+  <DC_Settings_MaxSettlementDistance>Max Settlement Distance (tiles)</DC_Settings_MaxSettlementDistance>
+  <DC_Settings_MaxSettlementDistance_Desc>Maximum tiles from player start for Ledger settlement.</DC_Settings_MaxSettlementDistance_Desc>
+  <DC_Settings_TributeMultiplier>Tribute Multiplier</DC_Settings_TributeMultiplier>
+  <DC_Settings_TributeMultiplier_Desc>Multiplier for tribute required after lockout (based on last loan).</DC_Settings_TributeMultiplier_Desc>
+  <DC_Settings_RaidStrengthMultiplier>Raid Strength Multiplier</DC_Settings_RaidStrengthMultiplier>
+  <DC_Settings_RaidStrengthMultiplier_Desc>Multiplier for collections raid strength.</DC_Settings_RaidStrengthMultiplier_Desc>
+  <DC_Settings_InterestPaymentWindowHours>Interest Payment Window (hours)</DC_Settings_InterestPaymentWindowHours>
+  <DC_Settings_InterestPaymentWindowHours_Desc>Hours to pay interest before it counts as missed.</DC_Settings_InterestPaymentWindowHours_Desc>
+</LanguageData>

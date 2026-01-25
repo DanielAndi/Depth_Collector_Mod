@@ -1,0 +1,8 @@
+is_global = true
+build_property.RootNamespace = DebtCollector
+build_property.ProjectDir = /home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.CsWinRTUseWindowsUIXamlProjections = false
+build_property.EffectiveAnalysisLevelStyle = 
+build_property.EnableCodeStyleSeverity = 

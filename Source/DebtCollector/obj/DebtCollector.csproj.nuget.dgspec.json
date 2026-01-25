@@ -1,0 +1,69 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/DebtCollector.csproj": {}
+  },
+  "projects": {
+    "/home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/DebtCollector.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/DebtCollector.csproj",
+        "projectName": "DebtCollector",
+        "projectPath": "/home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/DebtCollector.csproj",
+        "packagesPath": "/home/danielg/.nuget/packages/",
+        "outputPath": "/home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/danielg/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net48"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net48": {
+            "targetAlias": "net48",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net48": {
+          "targetAlias": "net48",
+          "dependencies": {
+            "Krafs.Rimworld.Ref": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.6.4633-beta, )"
+            },
+            "Lib.Harmony": {
+              "include": "Compile, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "target": "Package",
+              "version": "[2.3.3, )"
+            },
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.100/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
