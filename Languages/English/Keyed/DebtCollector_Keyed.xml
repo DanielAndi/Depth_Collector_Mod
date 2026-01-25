@@ -34,6 +34,9 @@
   <DC_Letter_TributeSent_Title>Tribute Accepted</DC_Letter_TributeSent_Title>
   <DC_Letter_TributeSent_Text>The Ledger has accepted your tribute of {0} silver. Your borrowing privileges have been restored. Do not disappoint us again.</DC_Letter_TributeSent_Text>
 
+  <DC_Letter_LoanTermExpired_Title>LOAN TERM EXPIRED</DC_Letter_LoanTermExpired_Title>
+  <DC_Letter_LoanTermExpired_Text>Your {1}-day loan term has expired. The Ledger demands immediate full repayment of {0} silver. Pay now or face collections.</DC_Letter_LoanTermExpired_Text>
+
   <!-- Messages -->
   <DC_Message_NotEnoughSilver>Not enough silver. You need {0} silver but only have {1}.</DC_Message_NotEnoughSilver>
   <DC_Message_AlreadyHaveLoan>You already have an active loan with The Ledger.</DC_Message_AlreadyHaveLoan>
@@ -57,6 +60,9 @@
   <DC_Dialog_TotalOwed>Total Owed: {0} silver</DC_Dialog_TotalOwed>
   <DC_Dialog_NextDue>Next Payment Due: {0}</DC_Dialog_NextDue>
   <DC_Dialog_MissedPayments>Missed Payments: {0}/{1}</DC_Dialog_MissedPayments>
+  <DC_Dialog_LoanTerm>Loan Term: {0} days</DC_Dialog_LoanTerm>
+  <DC_Dialog_DaysUntilExpiry>Days Until Expiry: {0}</DC_Dialog_DaysUntilExpiry>
+  <DC_Dialog_LoanExpired>LOAN TERM EXPIRED - Full payment required!</DC_Dialog_LoanExpired>
   <DC_Dialog_ColonySilver>Colony Silver: {0}</DC_Dialog_ColonySilver>
   <DC_Dialog_TributeRequired>Tribute Required: {0} silver</DC_Dialog_TributeRequired>
   <DC_Dialog_NoDebt>No outstanding debt.</DC_Dialog_NoDebt>
@@ -89,4 +95,8 @@
   <DC_Settings_RaidStrengthMultiplier_Desc>Multiplier for collections raid strength.</DC_Settings_RaidStrengthMultiplier_Desc>
   <DC_Settings_InterestPaymentWindowHours>Interest Payment Window (hours)</DC_Settings_InterestPaymentWindowHours>
   <DC_Settings_InterestPaymentWindowHours_Desc>Hours to pay interest before it counts as missed.</DC_Settings_InterestPaymentWindowHours_Desc>
+  <DC_Settings_LoanTermDays>Loan Term (days)</DC_Settings_LoanTermDays>
+  <DC_Settings_LoanTermDays_Desc>Number of days the loan must be paid off within. After this time, full payment is required.</DC_Settings_LoanTermDays_Desc>
+  <DC_Settings_PrincipalReductionPerPayment>Principal Reduction Per Payment (%)</DC_Settings_PrincipalReductionPerPayment>
+  <DC_Settings_PrincipalReductionPerPayment_Desc>Percentage of original principal that is paid off with each interest payment.</DC_Settings_PrincipalReductionPerPayment_Desc>
 </LanguageData>

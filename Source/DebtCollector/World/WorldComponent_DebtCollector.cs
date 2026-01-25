@@ -61,6 +61,17 @@ namespace DebtCollector
                 return; // Don't process other events during active raid
             }
 
+            // Check if loan term has expired
+            if (contract.IsActive && contract.IsLoanTermExpired(currentTick))
+            {
+                // Loan term expired - require full payment
+                if (contract.status != DebtStatus.Collections)
+                {
+                    TriggerLoanTermExpiration(currentTick);
+                }
+                return; // Collections deadline will be handled by ProcessCollectionsDeadline
+            }
+
             // Process interest and collections deadlines
             if (contract.status == DebtStatus.Current || contract.status == DebtStatus.Delinquent)
             {
@@ -135,6 +146,27 @@ namespace DebtCollector
                 null,
                 contract.TotalOwed
             );
+        }
+
+        private void TriggerLoanTermExpiration(int currentTick)
+        {
+            // Loan term expired - require full payment immediately
+            var settings = DebtCollectorMod.Settings;
+            float deadlineHours = settings?.collectionsDeadlineHours ?? DC_Constants.DEFAULT_COLLECTIONS_DEADLINE_HOURS;
+            
+            contract.TriggerCollections(currentTick);
+            
+            // Send letter about loan term expiration
+            DC_Util.SendLetter(
+                "DC_Letter_LoanTermExpired_Title",
+                "DC_Letter_LoanTermExpired_Text",
+                LetterDefOf.ThreatBig,
+                null,
+                contract.TotalOwed,
+                contract.loanTermDays
+            );
+            
+            Log.Message($"[DebtCollector] Loan term expired. Full payment of {contract.TotalOwed} required within {deadlineHours} hours.");
         }
 
         private void ProcessCollectionsDeadline(int currentTick)

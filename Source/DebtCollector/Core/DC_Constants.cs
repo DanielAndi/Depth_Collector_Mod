@@ -8,6 +8,8 @@ namespace DebtCollector
         public const float DEFAULT_INTEREST_PAYMENT_WINDOW_HOURS = 24f;
         public const int DEFAULT_GRACE_MISSED_PAYMENTS = 2;
         public const float DEFAULT_COLLECTIONS_DEADLINE_HOURS = 18f;
+        public const int DEFAULT_LOAN_TERM_DAYS = 30; // Loan must be paid off within this many days
+        public const float DEFAULT_PRINCIPAL_REDUCTION_PER_PAYMENT = 0.05f; // 5% of original principal per payment
         public const int DEFAULT_MIN_SETTLEMENT_DISTANCE = 4;
         public const int DEFAULT_MAX_SETTLEMENT_DISTANCE = 15;
         public const float DEFAULT_TRIBUTE_MULTIPLIER = 1.5f;

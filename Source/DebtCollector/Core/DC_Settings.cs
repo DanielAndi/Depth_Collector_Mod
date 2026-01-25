@@ -24,6 +24,12 @@ namespace DebtCollector
         public int minSettlementDistance = DC_Constants.DEFAULT_MIN_SETTLEMENT_DISTANCE;
         public int maxSettlementDistance = DC_Constants.DEFAULT_MAX_SETTLEMENT_DISTANCE;
         
+        // Loan term in days (must be paid off within this time)
+        public int loanTermDays = DC_Constants.DEFAULT_LOAN_TERM_DAYS;
+        
+        // Principal reduction per payment (as fraction of original principal, e.g., 0.05 = 5%)
+        public float principalReductionPerPayment = DC_Constants.DEFAULT_PRINCIPAL_REDUCTION_PER_PAYMENT;
+        
         // Tribute multiplier based on last loan amount
         public float tributeMultiplier = DC_Constants.DEFAULT_TRIBUTE_MULTIPLIER;
         
@@ -40,6 +46,8 @@ namespace DebtCollector
             Scribe_Values.Look(ref collectionsDeadlineHours, "collectionsDeadlineHours", DC_Constants.DEFAULT_COLLECTIONS_DEADLINE_HOURS);
             Scribe_Values.Look(ref minSettlementDistance, "minSettlementDistance", DC_Constants.DEFAULT_MIN_SETTLEMENT_DISTANCE);
             Scribe_Values.Look(ref maxSettlementDistance, "maxSettlementDistance", DC_Constants.DEFAULT_MAX_SETTLEMENT_DISTANCE);
+            Scribe_Values.Look(ref loanTermDays, "loanTermDays", DC_Constants.DEFAULT_LOAN_TERM_DAYS);
+            Scribe_Values.Look(ref principalReductionPerPayment, "principalReductionPerPayment", DC_Constants.DEFAULT_PRINCIPAL_REDUCTION_PER_PAYMENT);
             Scribe_Values.Look(ref tributeMultiplier, "tributeMultiplier", DC_Constants.DEFAULT_TRIBUTE_MULTIPLIER);
             Scribe_Values.Look(ref raidStrengthMultiplier, "raidStrengthMultiplier", DC_Constants.DEFAULT_RAID_STRENGTH_MULTIPLIER);
         }
@@ -72,6 +80,16 @@ namespace DebtCollector
             listing.Label("DC_Settings_CollectionsDeadlineHours".Translate() + ": " + collectionsDeadlineHours.ToString("F0"));
             listing.Label("DC_Settings_CollectionsDeadlineHours_Desc".Translate());
             collectionsDeadlineHours = listing.Slider(collectionsDeadlineHours, 6f, 48f);
+            listing.Gap();
+
+            listing.Label("DC_Settings_LoanTermDays".Translate() + ": " + loanTermDays);
+            listing.Label("DC_Settings_LoanTermDays_Desc".Translate());
+            loanTermDays = (int)listing.Slider(loanTermDays, 7f, 90f);
+            listing.Gap();
+
+            listing.Label("DC_Settings_PrincipalReductionPerPayment".Translate() + ": " + (principalReductionPerPayment * 100f).ToString("F1") + "%");
+            listing.Label("DC_Settings_PrincipalReductionPerPayment_Desc".Translate());
+            principalReductionPerPayment = listing.Slider(principalReductionPerPayment, 0.01f, 0.20f);
             listing.Gap();
 
             listing.Label("DC_Settings_MinSettlementDistance".Translate() + ": " + minSettlementDistance);

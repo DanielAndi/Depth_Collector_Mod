@@ -111,6 +111,31 @@ namespace DebtCollector
                 Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
                     "DC_Dialog_MissedPayments".Translate(contract.missedPayments, graceMissed + 1));
                 y += lineHeight;
+
+                // Loan Term Information
+                if (contract.loanTermDays > 0)
+                {
+                    int daysRemaining = contract.DaysUntilLoanExpiry(currentTick);
+                    if (daysRemaining >= 0)
+                    {
+                        if (contract.IsLoanTermExpired(currentTick))
+                        {
+                            GUI.color = Color.red;
+                            Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                                "DC_Dialog_LoanExpired".Translate());
+                            GUI.color = Color.white;
+                        }
+                        else
+                        {
+                            Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                                "DC_Dialog_DaysUntilExpiry".Translate(daysRemaining));
+                        }
+                        y += lineHeight;
+                    }
+                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                        "DC_Dialog_LoanTerm".Translate(contract.loanTermDays));
+                    y += lineHeight;
+                }
             }
             else if (contract.status == DebtStatus.LockedOut)
             {
