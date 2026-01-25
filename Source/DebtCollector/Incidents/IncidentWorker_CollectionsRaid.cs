@@ -1,6 +1,7 @@
 using System;
 using RimWorld;
 using Verse;
+using Verse.AI.Group;
 
 namespace DebtCollector
 {
@@ -31,8 +32,34 @@ namespace DebtCollector
                     return false;
                 }
 
+                // Ensure faction is hostile to player for the raid
+                // Use TryAffectGoodwill to make faction hostile if not already
+                if (!parms.faction.HostileTo(Faction.OfPlayer))
+                {
+                    parms.faction.TryAffectGoodwillWith(Faction.OfPlayer, -100, canSendMessage: false, canSendHostilityLetter: false, null);
+                    Log.Message("[DebtCollector] Set Ledger faction to hostile in incident worker");
+                }
+
+                // Ensure raid parameters are set correctly
+                if (parms.raidStrategy == null)
+                {
+                    parms.raidStrategy = RaidStrategyDefOf.ImmediateAttack;
+                }
+                if (parms.raidArrivalMode == null)
+                {
+                    parms.raidArrivalMode = PawnsArrivalModeDefOf.EdgeWalkIn;
+                }
+
                 Log.Message($"[DebtCollector] Collections raid executing on map {((Map)parms.target).uniqueID} for faction {parms.faction.Name}");
-                return base.TryExecuteWorker(parms);
+                bool result = base.TryExecuteWorker(parms);
+                
+                // Post-spawn: Ensure all spawned pawns are hostile and have proper lord jobs
+                if (result)
+                {
+                    EnsureRaidPawnsHostile((Map)parms.target, parms.faction);
+                }
+                
+                return result;
             }
             catch (Exception ex)
             {
@@ -96,6 +123,52 @@ namespace DebtCollector
                 return false;
 
             return base.CanFireNowSub(parms);
+        }
+
+        /// <summary>
+        /// Ensures all spawned raid pawns are assigned to proper assault lord jobs.
+        /// The base raid worker should create assault lords, but we verify and fix if needed.
+        /// </summary>
+        private void EnsureRaidPawnsHostile(Map map, Faction faction)
+        {
+            if (map == null || faction == null)
+                return;
+
+            // Find existing assault lord for this faction
+            Lord assaultLord = null;
+            foreach (Lord lord in map.lordManager.lords)
+            {
+                if (lord.faction == faction && 
+                    (lord.LordJob is LordJob_AssaultColony || 
+                     lord.LordJob is LordJob_AssaultThings))
+                {
+                    assaultLord = lord;
+                    break;
+                }
+            }
+
+            // If no assault lord exists, the base raid worker should have created one
+            // Just log a warning and let the base system handle it
+            if (assaultLord == null)
+            {
+                Log.Warning("[DebtCollector] No assault lord found for collections raid - base raid worker should have created one");
+                return;
+            }
+
+            // Ensure all faction pawns are in the assault lord
+            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
+            {
+                if (pawn.Faction == faction && pawn.GetLord() != assaultLord)
+                {
+                    Lord currentLord = pawn.GetLord();
+                    if (currentLord != null)
+                    {
+                        currentLord.RemovePawn(pawn);
+                    }
+                    assaultLord.AddPawn(pawn);
+                    Log.Message($"[DebtCollector] Assigned pawn {pawn.Name} to assault lord for collections raid");
+                }
+            }
         }
     }
 }

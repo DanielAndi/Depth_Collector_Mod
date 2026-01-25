@@ -194,6 +194,14 @@ namespace DebtCollector
                 return;
             }
 
+            // Ensure faction is hostile to player for the raid
+            // Use TryAffectGoodwill to make faction hostile if not already
+            if (!ledgerFaction.HostileTo(Faction.OfPlayer))
+            {
+                ledgerFaction.TryAffectGoodwillWith(Faction.OfPlayer, -100, canSendMessage: false, canSendHostilityLetter: false, null);
+                Log.Message("[DebtCollector] Set Ledger faction to hostile for collections raid");
+            }
+
             // Build incident parameters
             var parms = new IncidentParms
             {
