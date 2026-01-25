@@ -324,7 +324,7 @@ namespace DebtCollector
         }
 
         /// <summary>
-        /// Called when player requests a new loan.
+        /// Called when player requests a new loan from colony (via comms console).
         /// </summary>
         public bool TryRequestLoan(int amount, out string failReason)
         {
@@ -352,11 +352,25 @@ namespace DebtCollector
             // Start the loan
             contract.StartLoan(amount, Find.TickManager.TicksGame);
 
-            // Spawn silver
-            Map map = DC_Util.GetPlayerHomeMap();
-            if (map != null)
+            // Give silver to caravan if at settlement, otherwise spawn on map
+            LookTargets lookTarget = null;
+            Caravan caravan = DC_Util.GetCaravanAtLedgerSettlement();
+            if (caravan != null)
             {
-                DC_Util.SpawnSilver(map, amount);
+                DC_Util.AddSilverToCaravan(caravan, amount);
+                lookTarget = new LookTargets(caravan);
+                Messages.Message("DC_Message_LoanReceivedCaravan".Translate(amount), caravan, MessageTypeDefOf.PositiveEvent);
+            }
+            else
+            {
+                Map map = DC_Util.GetPlayerHomeMap();
+                if (map != null)
+                {
+                    IntVec3 dropSpot = DropCellFinder.TradeDropSpot(map);
+                    DC_Util.SpawnSilver(map, amount);
+                    lookTarget = new LookTargets(dropSpot, map);
+                    Messages.Message("DC_Message_LoanReceived".Translate(amount), MessageTypeDefOf.PositiveEvent);
+                }
             }
 
             // Calculate next interest for the letter
@@ -368,19 +382,79 @@ namespace DebtCollector
                 "DC_Letter_LoanGranted_Title",
                 "DC_Letter_LoanGranted_Text",
                 LetterDefOf.PositiveEvent,
-                null,
+                lookTarget,
                 amount,
                 interestAmount,
                 intervalDays
             );
-
-            Messages.Message("DC_Message_LoanReceived".Translate(amount), MessageTypeDefOf.PositiveEvent);
             
             return true;
         }
 
         /// <summary>
-        /// Called when player pays interest.
+        /// Called when player requests a new loan while caravan is at the Ledger settlement.
+        /// Silver is delivered directly to the caravan's inventory.
+        /// </summary>
+        public bool TryRequestLoanToCaravan(Caravan caravan, int amount, out string failReason)
+        {
+            failReason = null;
+
+            if (caravan == null)
+            {
+                failReason = "DC_Message_NoCaravan".Translate();
+                return false;
+            }
+
+            if (contract.status == DebtStatus.LockedOut)
+            {
+                failReason = "DC_Message_LockedOut".Translate();
+                return false;
+            }
+
+            if (contract.IsActive)
+            {
+                failReason = "DC_Message_AlreadyHaveLoan".Translate();
+                return false;
+            }
+
+            Faction ledgerFaction = DC_Util.GetLedgerFaction();
+            if (ledgerFaction == null)
+            {
+                failReason = "DC_Message_NoLedgerFaction".Translate();
+                return false;
+            }
+
+            // Start the loan
+            contract.StartLoan(amount, Find.TickManager.TicksGame);
+
+            // Give silver directly to the caravan
+            DC_Util.AddSilverToCaravan(caravan, amount);
+
+            // Calculate next interest for the letter
+            float intervalDays = DebtCollectorMod.Settings?.interestIntervalDays ?? 
+                                DC_Constants.DEFAULT_INTEREST_INTERVAL_DAYS;
+            int interestAmount = contract.CurrentInterestDue;
+
+            // Letter points to the caravan
+            LookTargets lookTarget = new LookTargets(caravan);
+
+            DC_Util.SendLetter(
+                "DC_Letter_LoanGranted_Title",
+                "DC_Letter_LoanGranted_Text",
+                LetterDefOf.PositiveEvent,
+                lookTarget,
+                amount,
+                interestAmount,
+                intervalDays
+            );
+
+            Messages.Message("DC_Message_LoanReceivedCaravan".Translate(amount), caravan, MessageTypeDefOf.PositiveEvent);
+            
+            return true;
+        }
+
+        /// <summary>
+        /// Called when player pays interest from colony stockpiles.
         /// </summary>
         public bool TryPayInterest(out string failReason)
         {
@@ -420,7 +494,53 @@ namespace DebtCollector
         }
 
         /// <summary>
-        /// Called when player pays full balance.
+        /// Called when player pays interest from caravan inventory (at Ledger settlement).
+        /// </summary>
+        public bool TryPayInterestFromCaravan(Caravan caravan, out string failReason)
+        {
+            failReason = null;
+
+            if (caravan == null)
+            {
+                failReason = "DC_Message_NoCaravan".Translate();
+                return false;
+            }
+
+            if (!contract.IsActive)
+            {
+                failReason = "DC_Message_NoDebt".Translate();
+                return false;
+            }
+
+            if (contract.status == DebtStatus.Collections)
+            {
+                failReason = "DC_Message_InCollections".Translate();
+                return false;
+            }
+
+            int interestDue = contract.CurrentInterestDue;
+            int caravanSilver = DC_Util.CountCaravanSilver(caravan);
+
+            if (caravanSilver < interestDue)
+            {
+                failReason = "DC_Message_NotEnoughSilverCaravan".Translate(interestDue, caravanSilver);
+                return false;
+            }
+
+            if (!DC_Util.TryRemoveSilverFromCaravan(caravan, interestDue))
+            {
+                failReason = "DC_Message_NotEnoughSilverCaravan".Translate(interestDue, caravanSilver);
+                return false;
+            }
+
+            contract.PayInterest(Find.TickManager.TicksGame);
+            Messages.Message("DC_Message_PaymentSuccess".Translate(interestDue), caravan, MessageTypeDefOf.PositiveEvent);
+            
+            return true;
+        }
+
+        /// <summary>
+        /// Called when player pays full balance from colony stockpiles.
         /// </summary>
         public bool TryPayFullBalance(out string failReason)
         {
@@ -454,7 +574,47 @@ namespace DebtCollector
         }
 
         /// <summary>
-        /// Called when player sends tribute to unlock borrowing.
+        /// Called when player pays full balance from caravan inventory (at Ledger settlement).
+        /// </summary>
+        public bool TryPayFullBalanceFromCaravan(Caravan caravan, out string failReason)
+        {
+            failReason = null;
+
+            if (caravan == null)
+            {
+                failReason = "DC_Message_NoCaravan".Translate();
+                return false;
+            }
+
+            if (!contract.IsActive)
+            {
+                failReason = "DC_Message_NoDebt".Translate();
+                return false;
+            }
+
+            int totalOwed = contract.TotalOwed;
+            int caravanSilver = DC_Util.CountCaravanSilver(caravan);
+
+            if (caravanSilver < totalOwed)
+            {
+                failReason = "DC_Message_NotEnoughSilverCaravan".Translate(totalOwed, caravanSilver);
+                return false;
+            }
+
+            if (!DC_Util.TryRemoveSilverFromCaravan(caravan, totalOwed))
+            {
+                failReason = "DC_Message_NotEnoughSilverCaravan".Translate(totalOwed, caravanSilver);
+                return false;
+            }
+
+            contract.PayFull();
+            Messages.Message("DC_Message_PaymentSuccess".Translate(totalOwed), caravan, MessageTypeDefOf.PositiveEvent);
+            
+            return true;
+        }
+
+        /// <summary>
+        /// Called when player sends tribute to unlock borrowing from colony stockpiles.
         /// </summary>
         public bool TrySendTribute(out string failReason)
         {
@@ -490,6 +650,55 @@ namespace DebtCollector
                 null,
                 tributeRequired
             );
+            
+            return true;
+        }
+
+        /// <summary>
+        /// Called when player sends tribute from caravan inventory (at Ledger settlement).
+        /// </summary>
+        public bool TrySendTributeFromCaravan(Caravan caravan, out string failReason)
+        {
+            failReason = null;
+
+            if (caravan == null)
+            {
+                failReason = "DC_Message_NoCaravan".Translate();
+                return false;
+            }
+
+            if (contract.status != DebtStatus.LockedOut)
+            {
+                failReason = "DC_Message_NoDebt".Translate();
+                return false;
+            }
+
+            int tributeRequired = contract.RequiredTribute;
+            int caravanSilver = DC_Util.CountCaravanSilver(caravan);
+
+            if (caravanSilver < tributeRequired)
+            {
+                failReason = "DC_Message_NotEnoughSilverCaravan".Translate(tributeRequired, caravanSilver);
+                return false;
+            }
+
+            if (!DC_Util.TryRemoveSilverFromCaravan(caravan, tributeRequired))
+            {
+                failReason = "DC_Message_NotEnoughSilverCaravan".Translate(tributeRequired, caravanSilver);
+                return false;
+            }
+
+            contract.PayTribute();
+
+            DC_Util.SendLetter(
+                "DC_Letter_TributeSent_Title",
+                "DC_Letter_TributeSent_Text",
+                LetterDefOf.PositiveEvent,
+                new LookTargets(caravan),
+                tributeRequired
+            );
+
+            Messages.Message("DC_Message_TributeSent".Translate(tributeRequired), caravan, MessageTypeDefOf.PositiveEvent);
             
             return true;
         }

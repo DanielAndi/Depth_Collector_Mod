@@ -39,14 +39,18 @@
 
   <!-- Messages -->
   <DC_Message_NotEnoughSilver>Not enough silver. You need {0} silver but only have {1}.</DC_Message_NotEnoughSilver>
+  <DC_Message_NotEnoughSilverCaravan>Not enough silver in caravan. You need {0} silver but only have {1}.</DC_Message_NotEnoughSilverCaravan>
   <DC_Message_AlreadyHaveLoan>You already have an active loan with The Ledger.</DC_Message_AlreadyHaveLoan>
   <DC_Message_LockedOut>Your borrowing privileges are suspended. Send tribute to restore them.</DC_Message_LockedOut>
   <DC_Message_NoDebt>You have no outstanding debt.</DC_Message_NoDebt>
   <DC_Message_NoInterestDue>No interest payment is currently due.</DC_Message_NoInterestDue>
   <DC_Message_PaymentSuccess>Payment of {0} silver sent to The Ledger.</DC_Message_PaymentSuccess>
   <DC_Message_LoanReceived>{0} silver has been delivered to your colony.</DC_Message_LoanReceived>
+  <DC_Message_LoanReceivedCaravan>{0} silver has been added to your caravan's inventory.</DC_Message_LoanReceivedCaravan>
+  <DC_Message_TributeSent>Tribute of {0} silver sent to The Ledger.</DC_Message_TributeSent>
   <DC_Message_NoPoweredComms>Requires a powered comms console.</DC_Message_NoPoweredComms>
   <DC_Message_NoLedgerFaction>Unable to contact The Ledger. Faction not found.</DC_Message_NoLedgerFaction>
+  <DC_Message_NoCaravan>No caravan available.</DC_Message_NoCaravan>
   <DC_Message_InCollections>You are in collections. Pay the full balance to avoid a raid.</DC_Message_InCollections>
 
   <!-- Float Menu Options -->

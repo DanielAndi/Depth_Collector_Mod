@@ -13,6 +13,7 @@
     <canMakeRandomly>false</canMakeRandomly>
     <canStageAttacks>true</canStageAttacks>
     <leaderTitle>ledgermaster</leaderTitle>
+    <leaderForceGenerateNewPawn>true</leaderForceGenerateNewPawn>
     <factionIconPath>FactionIcons/Money_Icon</factionIconPath>
     <colorSpectrum>
       <li>(0.45, 0.45, 0.45)</li>
@@ -24,6 +25,11 @@
     <autoFlee>true</autoFlee>
     <canUseAvoidGrid>true</canUseAvoidGrid>
     <fixedName>The Ledger</fixedName>
+    
+    <!-- Faction leader kind -->
+    <fixedLeaderKinds>
+      <li>Mercenary_Elite</li>
+    </fixedLeaderKinds>
     
     <pawnGroupMakers Inherit="False">
       <li>

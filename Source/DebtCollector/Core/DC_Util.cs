@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 
 namespace DebtCollector
@@ -199,6 +200,173 @@ namespace DebtCollector
             var settings = DebtCollectorMod.Settings;
             float rate = settings?.interestRate ?? DC_Constants.DEFAULT_INTEREST_RATE;
             return (int)(principal * (rate / 100f));
+        }
+
+        /// <summary>
+        /// Gets the first player caravan at a Ledger settlement, or null if none exists.
+        /// </summary>
+        public static Caravan GetCaravanAtLedgerSettlement()
+        {
+            if (Find.WorldObjects == null)
+                return null;
+
+            Faction ledgerFaction = GetLedgerFaction();
+            if (ledgerFaction == null)
+                return null;
+
+            // Find Ledger settlement
+            Settlement ledgerSettlement = null;
+            foreach (Settlement settlement in Find.WorldObjects.Settlements)
+            {
+                if (settlement.Faction == ledgerFaction)
+                {
+                    ledgerSettlement = settlement;
+                    break;
+                }
+            }
+
+            if (ledgerSettlement == null)
+                return null;
+
+            // Find player caravan at that settlement
+            foreach (Caravan caravan in Find.WorldObjects.Caravans)
+            {
+                if (caravan.Faction == Faction.OfPlayer && caravan.Tile == ledgerSettlement.Tile)
+                {
+                    return caravan;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Adds silver to a caravan inventory.
+        /// </summary>
+        public static void AddSilverToCaravan(Caravan caravan, int amount)
+        {
+            if (caravan == null || amount <= 0) return;
+
+            // Add silver to caravan - distribute across pawns that can carry items
+            int remaining = amount;
+            foreach (Pawn pawn in caravan.PawnsListForReading)
+            {
+                if (remaining <= 0) break;
+                if (pawn.inventory == null) continue;
+
+                // Try to add to existing silver stack in this pawn's inventory
+                Thing existingSilver = pawn.inventory.innerContainer.FirstOrDefault(t => t.def == ThingDefOf.Silver);
+                if (existingSilver != null && existingSilver.stackCount < existingSilver.def.stackLimit)
+                {
+                    int spaceAvailable = existingSilver.def.stackLimit - existingSilver.stackCount;
+                    int toAdd = System.Math.Min(remaining, spaceAvailable);
+                    existingSilver.stackCount += toAdd;
+                    remaining -= toAdd;
+                }
+
+                // Add remaining silver as new stack(s) to this pawn
+                while (remaining > 0)
+                {
+                    Thing newSilver = ThingMaker.MakeThing(ThingDefOf.Silver);
+                    int stackSize = System.Math.Min(remaining, ThingDefOf.Silver.stackLimit);
+                    newSilver.stackCount = stackSize;
+                    
+                    if (pawn.inventory.innerContainer.TryAdd(newSilver))
+                    {
+                        remaining -= stackSize;
+                    }
+                    else
+                    {
+                        // Can't add more to this pawn, try next
+                        break;
+                    }
+                }
+            }
+
+            // If there's still remaining silver and we couldn't add it all, log a warning
+            if (remaining > 0)
+            {
+                Log.Warning($"[DebtCollector] Could not add all silver to caravan. {remaining} silver remaining.");
+            }
+        }
+
+        /// <summary>
+        /// Counts total silver in a caravan's inventory.
+        /// </summary>
+        public static int CountCaravanSilver(Caravan caravan)
+        {
+            if (caravan == null) return 0;
+
+            int total = 0;
+            foreach (Pawn pawn in caravan.PawnsListForReading)
+            {
+                if (pawn.inventory == null) continue;
+                
+                foreach (Thing thing in pawn.inventory.innerContainer)
+                {
+                    if (thing.def == ThingDefOf.Silver)
+                    {
+                        total += thing.stackCount;
+                    }
+                }
+            }
+            return total;
+        }
+
+        /// <summary>
+        /// Attempts to remove silver from a caravan's inventory. Returns true if successful.
+        /// </summary>
+        public static bool TryRemoveSilverFromCaravan(Caravan caravan, int amount)
+        {
+            if (caravan == null || amount <= 0) return false;
+            if (CountCaravanSilver(caravan) < amount) return false;
+
+            int remaining = amount;
+            foreach (Pawn pawn in caravan.PawnsListForReading)
+            {
+                if (remaining <= 0) break;
+                if (pawn.inventory == null) continue;
+
+                // Get all silver in this pawn's inventory
+                List<Thing> silverThings = pawn.inventory.innerContainer
+                    .Where(t => t.def == ThingDefOf.Silver)
+                    .OrderByDescending(t => t.stackCount)
+                    .ToList();
+
+                foreach (Thing silver in silverThings)
+                {
+                    if (remaining <= 0) break;
+
+                    int toRemove = System.Math.Min(silver.stackCount, remaining);
+                    silver.SplitOff(toRemove).Destroy();
+                    remaining -= toRemove;
+                }
+            }
+
+            return remaining <= 0;
+        }
+
+        /// <summary>
+        /// Gets the Ledger settlement world object, or null if not found.
+        /// </summary>
+        public static Settlement GetLedgerSettlement()
+        {
+            if (Find.WorldObjects == null)
+                return null;
+
+            Faction ledgerFaction = GetLedgerFaction();
+            if (ledgerFaction == null)
+                return null;
+
+            foreach (Settlement settlement in Find.WorldObjects.Settlements)
+            {
+                if (settlement.Faction == ledgerFaction)
+                {
+                    return settlement;
+                }
+            }
+
+            return null;
         }
     }
 }
