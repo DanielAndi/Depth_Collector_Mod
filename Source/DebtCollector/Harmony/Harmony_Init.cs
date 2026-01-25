@@ -229,7 +229,8 @@ namespace DebtCollector
             // Add "Pay Interest" gizmo (if applicable)
             if (contract.IsActive && contract.status != DebtStatus.Collections && contract.interestDemandSent)
             {
-                int interestDue = contract.CurrentInterestDue;
+                int currentTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+                int interestDue = contract.GetCurrentInterestDue(currentTick);
                 int caravanSilver = DC_Util.CountCaravanSilver(caravan);
                 
                 gizmos.Add(new Command_Action
@@ -250,7 +251,8 @@ namespace DebtCollector
             // Add "Pay Full Balance" gizmo (if there's active debt)
             if (contract.IsActive)
             {
-                int totalOwed = contract.TotalOwed;
+                int currentTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+                int totalOwed = contract.GetTotalOwed(currentTick);
                 int caravanSilver = DC_Util.CountCaravanSilver(caravan);
                 
                 gizmos.Add(new Command_Action

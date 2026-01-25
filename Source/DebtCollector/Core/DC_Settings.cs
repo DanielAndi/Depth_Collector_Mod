@@ -5,11 +5,20 @@ namespace DebtCollector
 {
     public class DC_Settings : ModSettings
     {
-        // Interest rate as percentage (e.g., 10 = 10%)
+        // Interest rate as percentage (e.g., 10 = 10%) - legacy, kept for backward compatibility
         public float interestRate = DC_Constants.DEFAULT_INTEREST_RATE;
+        
+        // Daily interest rate (e.g., 0.02 = 2% per day)
+        public float interestRatePerDay = DC_Constants.DEFAULT_INTEREST_RATE_PER_DAY;
+        
+        // Additional daily interest rate when delinquent (e.g., 0.01 = additional 1% per day)
+        public float latePenaltyRatePerDay = DC_Constants.DEFAULT_LATE_PENALTY_RATE_PER_DAY;
         
         // Days between interest payments
         public float interestIntervalDays = DC_Constants.DEFAULT_INTEREST_INTERVAL_DAYS;
+        
+        // Fixed silver fee per missed payment checkpoint
+        public int missedPaymentFee = DC_Constants.DEFAULT_MISSED_PAYMENT_FEE;
         
         // Hours to pay interest before counting as missed
         public float interestPaymentWindowHours = DC_Constants.DEFAULT_INTEREST_PAYMENT_WINDOW_HOURS;
@@ -40,7 +49,10 @@ namespace DebtCollector
         {
             base.ExposeData();
             Scribe_Values.Look(ref interestRate, "interestRate", DC_Constants.DEFAULT_INTEREST_RATE);
+            Scribe_Values.Look(ref interestRatePerDay, "interestRatePerDay", DC_Constants.DEFAULT_INTEREST_RATE_PER_DAY);
+            Scribe_Values.Look(ref latePenaltyRatePerDay, "latePenaltyRatePerDay", DC_Constants.DEFAULT_LATE_PENALTY_RATE_PER_DAY);
             Scribe_Values.Look(ref interestIntervalDays, "interestIntervalDays", DC_Constants.DEFAULT_INTEREST_INTERVAL_DAYS);
+            Scribe_Values.Look(ref missedPaymentFee, "missedPaymentFee", DC_Constants.DEFAULT_MISSED_PAYMENT_FEE);
             Scribe_Values.Look(ref interestPaymentWindowHours, "interestPaymentWindowHours", DC_Constants.DEFAULT_INTEREST_PAYMENT_WINDOW_HOURS);
             Scribe_Values.Look(ref graceMissedPayments, "graceMissedPayments", DC_Constants.DEFAULT_GRACE_MISSED_PAYMENTS);
             Scribe_Values.Look(ref collectionsDeadlineHours, "collectionsDeadlineHours", DC_Constants.DEFAULT_COLLECTIONS_DEADLINE_HOURS);
@@ -60,6 +72,11 @@ namespace DebtCollector
             listing.Label("DC_Settings_InterestRate".Translate() + ": " + interestRate.ToString("F1") + "%");
             listing.Label("DC_Settings_InterestRate_Desc".Translate());
             interestRate = listing.Slider(interestRate, 1f, 50f);
+            listing.Gap();
+
+            listing.Label("DC_Settings_LatePenaltyRate".Translate() + ": " + (latePenaltyRatePerDay * 100f).ToString("F1") + "%");
+            listing.Label("DC_Settings_LatePenaltyRate_Desc".Translate());
+            latePenaltyRatePerDay = listing.Slider(latePenaltyRatePerDay, 0f, 0.05f);
             listing.Gap();
 
             listing.Label("DC_Settings_InterestIntervalDays".Translate() + ": " + interestIntervalDays.ToString("F1"));

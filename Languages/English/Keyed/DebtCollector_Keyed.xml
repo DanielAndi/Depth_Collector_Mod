@@ -21,6 +21,10 @@
 
   <DC_Letter_InterestMissed_Title>Payment Missed</DC_Letter_InterestMissed_Title>
   <DC_Letter_InterestMissed_Text>You have missed an interest payment to The Ledger. This is your {0} missed payment. After {1} missed payments, they will come to collect in full.</DC_Letter_InterestMissed_Text>
+  <DC_Letter_PaymentMissed_Title>Payment Missed - Penalties Applied</DC_Letter_PaymentMissed_Title>
+  <DC_Letter_PaymentMissed_Text>You have missed your payment deadline to The Ledger. This is missed payment #{0}.\n\nLate fees incurred: {1} silver\nAdditional penalty interest: +{2}% per day\n\nInterest and fees will continue to accrue. Your debt must be paid in full before the loan term expires or The Ledger will send collectors.</DC_Letter_PaymentMissed_Text>
+  <DC_Letter_FullPaymentDemanded_Title>Full Payment Demanded</DC_Letter_FullPaymentDemanded_Title>
+  <DC_Letter_FullPaymentDemanded_Text>The Ledger demands immediate full payment of {0} silver. You have missed your payment deadline. Pay in full to avoid further consequences.</DC_Letter_FullPaymentDemanded_Text>
 
   <DC_Letter_CollectionsNotice_Title>COLLECTIONS NOTICE</DC_Letter_CollectionsNotice_Title>
   <DC_Letter_CollectionsNotice_Text>THE LEDGER DEMANDS FULL REPAYMENT.\n\nYou owe {0} silver. Pay by end of day or face forceful collection.\n\nThis is not a negotiation.</DC_Letter_CollectionsNotice_Text>
@@ -67,10 +71,15 @@
   <DC_Dialog_Title>The Ledger - Debt Status</DC_Dialog_Title>
   <DC_Dialog_Status>Status: {0}</DC_Dialog_Status>
   <DC_Dialog_Principal>Principal: {0} silver</DC_Dialog_Principal>
+  <DC_Dialog_InterestRate>Interest Rate: {0}% per day</DC_Dialog_InterestRate>
   <DC_Dialog_Interest>Accrued Interest: {0} silver</DC_Dialog_Interest>
+  <DC_Dialog_PenaltyInterest>Penalty Interest: {0} silver (+{1}%/day)</DC_Dialog_PenaltyInterest>
+  <DC_Dialog_LateFees>Late Fees: {0} silver ({1} missed @ {2} each)</DC_Dialog_LateFees>
+  <DC_Dialog_PaymentsMade>Payments Made: {0} silver</DC_Dialog_PaymentsMade>
   <DC_Dialog_TotalOwed>Total Owed: {0} silver</DC_Dialog_TotalOwed>
   <DC_Dialog_NextDue>Next Payment Due: {0}</DC_Dialog_NextDue>
   <DC_Dialog_MissedPayments>Missed Payments: {0}/{1}</DC_Dialog_MissedPayments>
+  <DC_Dialog_MissedPayments_Count>Missed Payments: {0}</DC_Dialog_MissedPayments_Count>
   <DC_Dialog_LoanTerm>Loan Term: {0} days</DC_Dialog_LoanTerm>
   <DC_Dialog_DaysUntilExpiry>Days Until Expiry: {0}</DC_Dialog_DaysUntilExpiry>
   <DC_Dialog_LoanExpired>LOAN TERM EXPIRED - Full payment required!</DC_Dialog_LoanExpired>
@@ -90,6 +99,8 @@
   <DC_Settings_Title>Debt Collector Settings</DC_Settings_Title>
   <DC_Settings_InterestRate>Interest Rate (%)</DC_Settings_InterestRate>
   <DC_Settings_InterestRate_Desc>Percentage of principal charged as interest each period.</DC_Settings_InterestRate_Desc>
+  <DC_Settings_LatePenaltyRate>Late Penalty Rate (% per day)</DC_Settings_LatePenaltyRate>
+  <DC_Settings_LatePenaltyRate_Desc>Additional daily interest rate applied when payments are missed.</DC_Settings_LatePenaltyRate_Desc>
   <DC_Settings_InterestIntervalDays>Interest Interval (days)</DC_Settings_InterestIntervalDays>
   <DC_Settings_InterestIntervalDays_Desc>Days between interest payments.</DC_Settings_InterestIntervalDays_Desc>
   <DC_Settings_GraceMissedPayments>Grace Missed Payments</DC_Settings_GraceMissedPayments>

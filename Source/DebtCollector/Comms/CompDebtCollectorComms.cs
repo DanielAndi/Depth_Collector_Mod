@@ -71,7 +71,8 @@ namespace DebtCollector
             // Pay Interest button
             if (contract.IsActive && contract.status != DebtStatus.Collections && contract.interestDemandSent)
             {
-                int interestDue = contract.CurrentInterestDue;
+                int currentTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+                int interestDue = contract.GetCurrentInterestDue(currentTick);
                 yield return new Command_Action
                 {
                     defaultLabel = "DC_Gizmo_PayInterest".Translate() + $" ({interestDue})",
@@ -90,7 +91,8 @@ namespace DebtCollector
             // Pay Full Balance button
             if (contract.IsActive)
             {
-                int totalOwed = contract.TotalOwed;
+                int currentTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+                int totalOwed = contract.GetTotalOwed(currentTick);
                 yield return new Command_Action
                 {
                     defaultLabel = "DC_Gizmo_PayFull".Translate() + $" ({totalOwed})",

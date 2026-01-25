@@ -119,15 +119,24 @@ namespace DebtCollector
             }
 
             DebtContract c = worldComp.Contract;
+            int currentTick = Find.TickManager.TicksGame;
+            double accruedInterest = c.GetAccruedInterest(currentTick);
+            int totalOwed = c.GetTotalOwed(currentTick);
+            int missedFees = c.GetMissedFees(currentTick);
+            
             Log.Message($"[DebtCollector Debug] Status: {c.status}");
             Log.Message($"[DebtCollector Debug] Principal: {c.principal}");
-            Log.Message($"[DebtCollector Debug] Accrued Interest: {c.accruedInterest}");
-            Log.Message($"[DebtCollector Debug] Total Owed: {c.TotalOwed}");
-            Log.Message($"[DebtCollector Debug] Missed Payments: {c.missedPayments}");
+            Log.Message($"[DebtCollector Debug] Accrued Interest: {accruedInterest:F2}");
+            Log.Message($"[DebtCollector Debug] Missed Fees: {missedFees}");
+            Log.Message($"[DebtCollector Debug] Payments Made: {c.paymentsMade}");
+            Log.Message($"[DebtCollector Debug] Total Owed: {totalOwed}");
+            Log.Message($"[DebtCollector Debug] Missed Payments Count: {c.GetMissedPaymentsCount(currentTick)}");
             Log.Message($"[DebtCollector Debug] Interest Demand Sent: {c.interestDemandSent}");
             Log.Message($"[DebtCollector Debug] Next Interest Due: {c.nextInterestDueTick}");
             Log.Message($"[DebtCollector Debug] Payment Deadline: {c.paymentDeadlineTick}");
-            Log.Message($"[DebtCollector Debug] Current Tick: {Find.TickManager.TicksGame}");
+            Log.Message($"[DebtCollector Debug] Current Tick: {currentTick}");
+            Log.Message($"[DebtCollector Debug] Loan Received Tick: {c.loanReceivedTick}");
+            Log.Message($"[DebtCollector Debug] Elapsed Days: {c.GetElapsedDays(currentTick):F2}");
             Log.Message($"[DebtCollector Debug] Collections Raid Active: {c.collectionsRaidActive}");
             Log.Message($"[DebtCollector Debug] Settlement Placed: {worldComp.SettlementPlaced}");
             Log.Message($"[DebtCollector Debug] Settlement Tile: {worldComp.LedgerSettlementTile}");

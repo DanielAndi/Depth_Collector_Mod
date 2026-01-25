@@ -46,6 +46,17 @@ namespace DebtCollector
 
             int currentTick = Find.TickManager.TicksGame;
 
+            // Check if contract is fully paid (safety check)
+            if (contract.IsActive)
+            {
+                int totalOwed = contract.GetTotalOwed(currentTick);
+                if (totalOwed <= 0)
+                {
+                    contract.PayFull(currentTick, 0); // Already paid, just update status
+                    return;
+                }
+            }
+
             // Skip processing if no active debt
             if (!contract.IsActive && contract.status != DebtStatus.LockedOut)
                 return;
@@ -93,34 +104,36 @@ namespace DebtCollector
             }
 
             // Check if payment deadline passed
-            if (contract.interestDemandSent && currentTick >= contract.paymentDeadlineTick)
+            bool deadlinePassed = contract.interestDemandSent && currentTick >= contract.paymentDeadlineTick;
+            
+            if (deadlinePassed)
             {
-                // Player missed the payment window
-                int graceMissed = DebtCollectorMod.Settings?.graceMissedPayments ?? 
-                                  DC_Constants.DEFAULT_GRACE_MISSED_PAYMENTS;
+                // Payment deadline missed - record it and continue accruing interest
+                // Raids only happen when the 30-day loan term expires, NOT when individual payments are late
+                int missedCount = contract.GetMissedPaymentsCount(currentTick) + 1;
+                int lateFees = contract.GetMissedFees(currentTick);
+                float penaltyRate = (DebtCollectorMod.Settings?.latePenaltyRatePerDay ?? DC_Constants.DEFAULT_LATE_PENALTY_RATE_PER_DAY) * 100f;
                 
+                contract.RecordMissedPayment(currentTick);
+                
+                // Send letter about missed payment (not demanding full payment)
                 DC_Util.SendLetter(
-                    "DC_Letter_InterestMissed_Title",
-                    "DC_Letter_InterestMissed_Text",
+                    "DC_Letter_PaymentMissed_Title",
+                    "DC_Letter_PaymentMissed_Text",
                     LetterDefOf.NegativeEvent,
                     null,
-                    contract.missedPayments + 1,
-                    graceMissed + 1
+                    missedCount,
+                    lateFees,
+                    penaltyRate.ToString("F1")
                 );
-
-                contract.RecordMissedPayment(currentTick);
-
-                // If this triggered collections, send that notice too
-                if (contract.status == DebtStatus.Collections)
-                {
-                    SendCollectionsNotice();
-                }
             }
+            // Note: When already delinquent, interest continues to accrue automatically via GetAccruedInterest()
+            // No need to call RecordMissedPayment repeatedly - missed payments are computed based on elapsed time
         }
 
         private void SendInterestDemand(int currentTick)
         {
-            int interestDue = contract.CurrentInterestDue;
+            int interestDue = contract.GetCurrentInterestDue(currentTick);
             float windowHours = DebtCollectorMod.Settings?.interestPaymentWindowHours ?? 
                                DC_Constants.DEFAULT_INTEREST_PAYMENT_WINDOW_HOURS;
 
@@ -157,16 +170,17 @@ namespace DebtCollector
             contract.TriggerCollections(currentTick);
             
             // Send letter about loan term expiration
+            int totalOwed = contract.GetTotalOwed(currentTick);
             DC_Util.SendLetter(
                 "DC_Letter_LoanTermExpired_Title",
                 "DC_Letter_LoanTermExpired_Text",
                 LetterDefOf.ThreatBig,
                 null,
-                contract.TotalOwed,
+                totalOwed,
                 contract.loanTermDays
             );
             
-            Log.Message($"[DebtCollector] Loan term expired. Full payment of {contract.TotalOwed} required within {deadlineHours} hours.");
+            Log.Message($"[DebtCollector] Loan term expired. Full payment of {totalOwed} required within {deadlineHours} hours.");
         }
 
         private void ProcessCollectionsDeadline(int currentTick)
@@ -215,7 +229,8 @@ namespace DebtCollector
             // Scale points based on debt and multiplier
             float multiplier = DebtCollectorMod.Settings?.raidStrengthMultiplier ?? 
                               DC_Constants.DEFAULT_RAID_STRENGTH_MULTIPLIER;
-            parms.points = contract.TotalOwed * multiplier;
+            int currentTick = Find.TickManager.TicksGame;
+            parms.points = contract.GetTotalOwed(currentTick) * multiplier;
             parms.points = System.Math.Max(parms.points, 200f); // Minimum viable raid
 
             // Execute the raid incident
@@ -376,7 +391,8 @@ namespace DebtCollector
             // Calculate next interest for the letter
             float intervalDays = DebtCollectorMod.Settings?.interestIntervalDays ?? 
                                 DC_Constants.DEFAULT_INTEREST_INTERVAL_DAYS;
-            int interestAmount = contract.CurrentInterestDue;
+            int currentTick = Find.TickManager.TicksGame;
+            int interestAmount = contract.GetCurrentInterestDue(currentTick);
 
             DC_Util.SendLetter(
                 "DC_Letter_LoanGranted_Title",
@@ -433,7 +449,8 @@ namespace DebtCollector
             // Calculate next interest for the letter
             float intervalDays = DebtCollectorMod.Settings?.interestIntervalDays ?? 
                                 DC_Constants.DEFAULT_INTEREST_INTERVAL_DAYS;
-            int interestAmount = contract.CurrentInterestDue;
+            int currentTick = Find.TickManager.TicksGame;
+            int interestAmount = contract.GetCurrentInterestDue(currentTick);
 
             // Letter points to the caravan
             LookTargets lookTarget = new LookTargets(caravan);
@@ -460,6 +477,12 @@ namespace DebtCollector
         {
             failReason = null;
 
+            if (Find.TickManager == null)
+            {
+                failReason = "DC_Message_NoDebt".Translate();
+                return false;
+            }
+
             if (!contract.IsActive)
             {
                 failReason = "DC_Message_NoDebt".Translate();
@@ -472,7 +495,8 @@ namespace DebtCollector
                 return false;
             }
 
-            int interestDue = contract.CurrentInterestDue;
+            int currentTick = Find.TickManager.TicksGame;
+            int interestDue = contract.GetCurrentInterestDue(currentTick);
             int colonySilver = DC_Util.CountColonySilver();
 
             if (colonySilver < interestDue)
@@ -487,7 +511,7 @@ namespace DebtCollector
                 return false;
             }
 
-            contract.PayInterest(Find.TickManager.TicksGame);
+            contract.PayInterest(currentTick, interestDue);
             Messages.Message("DC_Message_PaymentSuccess".Translate(interestDue), MessageTypeDefOf.PositiveEvent);
             
             return true;
@@ -499,6 +523,12 @@ namespace DebtCollector
         public bool TryPayInterestFromCaravan(Caravan caravan, out string failReason)
         {
             failReason = null;
+
+            if (Find.TickManager == null)
+            {
+                failReason = "DC_Message_NoDebt".Translate();
+                return false;
+            }
 
             if (caravan == null)
             {
@@ -518,7 +548,8 @@ namespace DebtCollector
                 return false;
             }
 
-            int interestDue = contract.CurrentInterestDue;
+            int currentTick = Find.TickManager.TicksGame;
+            int interestDue = contract.GetCurrentInterestDue(currentTick);
             int caravanSilver = DC_Util.CountCaravanSilver(caravan);
 
             if (caravanSilver < interestDue)
@@ -533,7 +564,7 @@ namespace DebtCollector
                 return false;
             }
 
-            contract.PayInterest(Find.TickManager.TicksGame);
+            contract.PayInterest(currentTick, interestDue);
             Messages.Message("DC_Message_PaymentSuccess".Translate(interestDue), caravan, MessageTypeDefOf.PositiveEvent);
             
             return true;
@@ -546,13 +577,20 @@ namespace DebtCollector
         {
             failReason = null;
 
+            if (Find.TickManager == null)
+            {
+                failReason = "DC_Message_NoDebt".Translate();
+                return false;
+            }
+
             if (!contract.IsActive)
             {
                 failReason = "DC_Message_NoDebt".Translate();
                 return false;
             }
 
-            int totalOwed = contract.TotalOwed;
+            int currentTick = Find.TickManager.TicksGame;
+            int totalOwed = contract.GetTotalOwed(currentTick);
             int colonySilver = DC_Util.CountColonySilver();
 
             if (colonySilver < totalOwed)
@@ -567,7 +605,7 @@ namespace DebtCollector
                 return false;
             }
 
-            contract.PayFull();
+            contract.PayFull(currentTick, totalOwed);
             Messages.Message("DC_Message_PaymentSuccess".Translate(totalOwed), MessageTypeDefOf.PositiveEvent);
             
             return true;
@@ -579,6 +617,12 @@ namespace DebtCollector
         public bool TryPayFullBalanceFromCaravan(Caravan caravan, out string failReason)
         {
             failReason = null;
+
+            if (Find.TickManager == null)
+            {
+                failReason = "DC_Message_NoDebt".Translate();
+                return false;
+            }
 
             if (caravan == null)
             {
@@ -592,7 +636,8 @@ namespace DebtCollector
                 return false;
             }
 
-            int totalOwed = contract.TotalOwed;
+            int currentTick = Find.TickManager.TicksGame;
+            int totalOwed = contract.GetTotalOwed(currentTick);
             int caravanSilver = DC_Util.CountCaravanSilver(caravan);
 
             if (caravanSilver < totalOwed)
@@ -607,7 +652,7 @@ namespace DebtCollector
                 return false;
             }
 
-            contract.PayFull();
+            contract.PayFull(currentTick, totalOwed);
             Messages.Message("DC_Message_PaymentSuccess".Translate(totalOwed), caravan, MessageTypeDefOf.PositiveEvent);
             
             return true;

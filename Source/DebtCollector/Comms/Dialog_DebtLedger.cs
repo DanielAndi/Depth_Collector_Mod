@@ -11,7 +11,7 @@ namespace DebtCollector
     {
         private readonly DebtContract contract;
 
-        public override Vector2 InitialSize => new Vector2(400f, 350f);
+        public override Vector2 InitialSize => new Vector2(460f, 450f);
 
         public Dialog_DebtLedger(DebtContract contract)
         {
@@ -59,15 +59,59 @@ namespace DebtCollector
                     "DC_Dialog_Principal".Translate(contract.principal));
                 y += lineHeight;
 
-                // Accrued Interest
+                // Interest Rate
+                var settings = DebtCollectorMod.Settings;
+                float interestRatePerDay = settings?.interestRatePerDay ?? DC_Constants.DEFAULT_INTEREST_RATE_PER_DAY;
+                float interestRatePercent = interestRatePerDay * 100f;
                 Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                    "DC_Dialog_Interest".Translate(contract.accruedInterest));
+                    "DC_Dialog_InterestRate".Translate(interestRatePercent.ToString("F2")));
                 y += lineHeight;
+
+                // Accrued Interest (computed - base interest only for display, excluding penalty)
+                double baseInterest = contract.principal * interestRatePerDay * contract.GetElapsedDays(currentTick);
+                Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                    "DC_Dialog_Interest".Translate((int)System.Math.Ceiling(baseInterest)));
+                y += lineHeight;
+
+                // Penalty Interest (when delinquent)
+                double penaltyInterest = contract.GetPenaltyInterest(currentTick);
+                if (penaltyInterest > 0)
+                {
+                    float penaltyRatePerDay = DebtCollectorMod.Settings?.latePenaltyRatePerDay ?? DC_Constants.DEFAULT_LATE_PENALTY_RATE_PER_DAY;
+                    float penaltyRatePercent = penaltyRatePerDay * 100f;
+                    GUI.color = Color.yellow;
+                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                        "DC_Dialog_PenaltyInterest".Translate((int)System.Math.Ceiling(penaltyInterest), penaltyRatePercent.ToString("F1")));
+                    GUI.color = Color.white;
+                    y += lineHeight;
+                }
+
+                // Late Fees (missed payment fees)
+                int lateFees = contract.GetMissedFees(currentTick);
+                if (lateFees > 0)
+                {
+                    int missedCount = contract.GetMissedPaymentsCount(currentTick);
+                    int feePerMissed = DebtCollectorMod.Settings?.missedPaymentFee ?? DC_Constants.DEFAULT_MISSED_PAYMENT_FEE;
+                    GUI.color = Color.yellow;
+                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                        "DC_Dialog_LateFees".Translate(lateFees, missedCount, feePerMissed));
+                    GUI.color = Color.white;
+                    y += lineHeight;
+                }
+
+                // Payments Made
+                if (contract.paymentsMade > 0)
+                {
+                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                        "DC_Dialog_PaymentsMade".Translate(contract.paymentsMade));
+                    y += lineHeight;
+                }
 
                 // Total Owed
                 Text.Font = GameFont.Medium;
+                int totalOwed = contract.GetTotalOwed(currentTick);
                 Widgets.Label(new Rect(0, y, inRect.width, lineHeight + 5f), 
-                    "DC_Dialog_TotalOwed".Translate(contract.TotalOwed));
+                    "DC_Dialog_TotalOwed".Translate(totalOwed));
                 Text.Font = GameFont.Small;
                 y += lineHeight + 10f;
 
@@ -105,12 +149,15 @@ namespace DebtCollector
                     y += lineHeight;
                 }
 
-                // Missed Payments
-                int graceMissed = DebtCollectorMod.Settings?.graceMissedPayments ?? 
-                                 DC_Constants.DEFAULT_GRACE_MISSED_PAYMENTS;
-                Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                    "DC_Dialog_MissedPayments".Translate(contract.missedPayments, graceMissed + 1));
-                y += lineHeight;
+                // Missed Payments count (only show if no late fees displayed, to avoid redundancy)
+                int missedPaymentsCount = contract.GetMissedPaymentsCount(currentTick);
+                int displayedLateFees = contract.GetMissedFees(currentTick);
+                if (missedPaymentsCount > 0 && displayedLateFees <= 0)
+                {
+                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                        "DC_Dialog_MissedPayments_Count".Translate(missedPaymentsCount));
+                    y += lineHeight;
+                }
 
                 // Loan Term Information
                 if (contract.loanTermDays > 0)
