@@ -3,6 +3,7 @@ using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using UnityEngine;
 using Verse;
 
 namespace DebtCollector
@@ -143,24 +144,28 @@ namespace DebtCollector
     }
 
     /// <summary>
-    /// Patch to add lending options when visiting a Ledger faction settlement.
-    /// This allows players to access debt management options directly from the settlement.
+    /// Patch to add UI gizmos when left-clicking on a Ledger faction settlement while a caravan is present.
+    /// This provides quick access to debt management options directly from the settlement (not the caravan).
     /// </summary>
-    [HarmonyPatch(typeof(Settlement), nameof(Settlement.GetFloatMenuOptions))]
-    public static class Patch_Settlement_GetFloatMenuOptions
+    [HarmonyPatch(typeof(Settlement), nameof(Settlement.GetGizmos))]
+    public static class Patch_Settlement_GetGizmos
     {
         [HarmonyPostfix]
-        public static void Postfix(Settlement __instance, Caravan caravan, ref IEnumerable<FloatMenuOption> __result)
+        public static void Postfix(Settlement __instance, ref IEnumerable<Gizmo> __result)
         {
-            if (__result == null || caravan == null)
+            if (__result == null)
                 return;
 
             Faction ledgerFaction = DC_Util.GetLedgerFaction();
             if (ledgerFaction == null)
                 return;
 
-            // Only add options for Ledger faction settlements
+            // Only add gizmos for Ledger faction settlements
             if (__instance.Faction != ledgerFaction)
+                return;
+
+            // Check if a player caravan is at this settlement
+            if (!HasCaravanAtSettlement(__instance))
                 return;
 
             WorldComponent_DebtCollector worldComp = WorldComponent_DebtCollector.Get();
@@ -172,102 +177,104 @@ namespace DebtCollector
                 return;
 
             // Convert to list to modify
-            List<FloatMenuOption> options = __result.ToList();
+            List<Gizmo> gizmos = __result.ToList();
 
-            // Add "View Ledger" option (always available)
-            options.Add(new FloatMenuOption(
-                "DC_Settlement_ViewLedger".Translate(),
-                () => Find.WindowStack.Add(new Dialog_DebtLedger(contract)),
-                MenuOptionPriority.Default,
-                null,
-                null,
-                0f,
-                null,
-                null
-            ));
+            // Add "View Ledger" gizmo (always available)
+            gizmos.Add(new Command_Action
+            {
+                defaultLabel = "DC_Gizmo_ViewLedger".Translate(),
+                defaultDesc = "DC_Gizmo_ViewLedger_Desc".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Commands/CallAid", false) ?? BaseContent.BadTex,
+                action = () => Find.WindowStack.Add(new Dialog_DebtLedger(contract))
+            });
 
-            // Add "Request Loan" option (if borrowing is allowed)
+            // Add "Request Loan" gizmo (if borrowing is allowed)
             if (contract.CanBorrow)
             {
-                options.Add(new FloatMenuOption(
-                    "DC_Settlement_RequestLoan".Translate(),
-                    () => OpenLoanMenuAtSettlement(worldComp),
-                    MenuOptionPriority.Default,
-                    null,
-                    null,
-                    0f,
-                    null,
-                    null
-                ));
+                gizmos.Add(new Command_Action
+                {
+                    defaultLabel = "DC_Gizmo_RequestLoan".Translate(),
+                    defaultDesc = "DC_Gizmo_RequestLoan_Desc".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("UI/Commands/Trade", false) ?? BaseContent.BadTex,
+                    action = () => OpenLoanMenuAtSettlement(worldComp)
+                });
             }
 
-            // Add "Pay Interest" option (if applicable)
+            // Add "Pay Interest" gizmo (if applicable)
             if (contract.IsActive && contract.status != DebtStatus.Collections && contract.interestDemandSent)
             {
                 int interestDue = contract.CurrentInterestDue;
-                options.Add(new FloatMenuOption(
-                    "DC_Settlement_PayInterest".Translate() + $" ({interestDue})",
-                    () =>
+                gizmos.Add(new Command_Action
+                {
+                    defaultLabel = "DC_Gizmo_PayInterest".Translate() + $" ({interestDue})",
+                    defaultDesc = "DC_Gizmo_PayInterest_Desc".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("Things/Item/Resource/Silver/Silver_c", false) ?? BaseContent.BadTex,
+                    action = () =>
                     {
                         if (!worldComp.TryPayInterest(out string reason))
                         {
                             Messages.Message(reason, MessageTypeDefOf.RejectInput);
                         }
-                    },
-                    MenuOptionPriority.Default,
-                    null,
-                    null,
-                    0f,
-                    null,
-                    null
-                ));
+                    }
+                });
             }
 
-            // Add "Pay Full Balance" option (if there's active debt)
+            // Add "Pay Full Balance" gizmo (if there's active debt)
             if (contract.IsActive)
             {
                 int totalOwed = contract.TotalOwed;
-                options.Add(new FloatMenuOption(
-                    "DC_Settlement_PayFull".Translate() + $" ({totalOwed})",
-                    () =>
+                gizmos.Add(new Command_Action
+                {
+                    defaultLabel = "DC_Gizmo_PayFull".Translate() + $" ({totalOwed})",
+                    defaultDesc = "DC_Gizmo_PayFull_Desc".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("Things/Item/Resource/Silver/Silver_c", false) ?? BaseContent.BadTex,
+                    action = () =>
                     {
                         if (!worldComp.TryPayFullBalance(out string reason))
                         {
                             Messages.Message(reason, MessageTypeDefOf.RejectInput);
                         }
-                    },
-                    MenuOptionPriority.Default,
-                    null,
-                    null,
-                    0f,
-                    null,
-                    null
-                ));
+                    }
+                });
             }
 
-            // Add "Send Tribute" option (when locked out)
+            // Add "Send Tribute" gizmo (when locked out)
             if (contract.status == DebtStatus.LockedOut)
             {
                 int tributeRequired = contract.RequiredTribute;
-                options.Add(new FloatMenuOption(
-                    "DC_Settlement_SendTribute".Translate() + $" ({tributeRequired})",
-                    () =>
+                gizmos.Add(new Command_Action
+                {
+                    defaultLabel = "DC_Gizmo_SendTribute".Translate() + $" ({tributeRequired})",
+                    defaultDesc = "DC_Gizmo_SendTribute_Desc".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("Things/Item/Resource/Silver/Silver_c", false) ?? BaseContent.BadTex,
+                    action = () =>
                     {
                         if (!worldComp.TrySendTribute(out string reason))
                         {
                             Messages.Message(reason, MessageTypeDefOf.RejectInput);
                         }
-                    },
-                    MenuOptionPriority.Default,
-                    null,
-                    null,
-                    0f,
-                    null,
-                    null
-                ));
+                    }
+                });
             }
 
-            __result = options;
+            __result = gizmos;
+        }
+
+        private static bool HasCaravanAtSettlement(Settlement settlement)
+        {
+            if (Find.WorldObjects == null)
+                return false;
+
+            // Check if any player caravan is at the settlement tile
+            foreach (Caravan caravan in Find.WorldObjects.Caravans)
+            {
+                if (caravan.Faction == Faction.OfPlayer && caravan.Tile == settlement.Tile)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void OpenLoanMenuAtSettlement(WorldComponent_DebtCollector worldComp)
