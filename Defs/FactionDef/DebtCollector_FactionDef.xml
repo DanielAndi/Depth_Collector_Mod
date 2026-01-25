@@ -13,7 +13,7 @@
     <canMakeRandomly>false</canMakeRandomly>
     <canStageAttacks>true</canStageAttacks>
     <leaderTitle>ledgermaster</leaderTitle>
-    <factionIconPath>World/WorldObjects/Expanding/Pirate</factionIconPath>
+    <factionIconPath>FactionIcons/Money_Icon</factionIconPath>
     <colorSpectrum>
       <li>(0.45, 0.45, 0.45)</li>
       <li>(0.2, 0.2, 0.2)</li>
