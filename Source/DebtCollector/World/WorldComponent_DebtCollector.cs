@@ -61,15 +61,15 @@ namespace DebtCollector
                 return; // Don't process other events during active raid
             }
 
-            // Check if loan term has expired
+            // Check if loan term has expired (only trigger once; then fall through to ProcessCollectionsDeadline)
             if (contract.IsActive && contract.IsLoanTermExpired(currentTick))
             {
-                // Loan term expired - require full payment
                 if (contract.status != DebtStatus.Collections)
                 {
                     TriggerLoanTermExpiration(currentTick);
+                    return; // Just triggered; deadline handling will run on subsequent ticks
                 }
-                return; // Collections deadline will be handled by ProcessCollectionsDeadline
+                // Already in Collections from loan expiry — fall through to process raid deadline
             }
 
             // Process interest and collections deadlines
