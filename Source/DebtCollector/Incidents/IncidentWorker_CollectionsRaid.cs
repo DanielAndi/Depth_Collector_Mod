@@ -53,7 +53,8 @@ namespace DebtCollector
                 Log.Message($"[DebtCollector] Collections raid executing on map {((Map)parms.target).uniqueID} for faction {parms.faction.Name}");
                 bool result = base.TryExecuteWorker(parms);
                 
-                // Post-spawn: Ensure all spawned pawns are hostile and have proper lord jobs
+                // Post-spawn: Only assign pawns that have no lord to the assault lord
+                // The base raid worker should handle most pawns correctly, but we catch any stragglers
                 if (result)
                 {
                     EnsureRaidPawnsHostile((Map)parms.target, parms.faction);
@@ -126,8 +127,9 @@ namespace DebtCollector
         }
 
         /// <summary>
-        /// Ensures all spawned raid pawns are assigned to proper assault lord jobs.
-        /// The base raid worker should create assault lords, but we verify and fix if needed.
+        /// Ensures unassigned raid pawns are assigned to the assault lord.
+        /// The base raid worker should handle most pawns correctly, but we catch any that weren't assigned.
+        /// We avoid reassigning pawns that already have a lord to prevent job conflicts.
         /// </summary>
         private void EnsureRaidPawnsHostile(Map map, Faction faction)
         {
@@ -155,18 +157,16 @@ namespace DebtCollector
                 return;
             }
 
-            // Ensure all faction pawns are in the assault lord
+            // Only assign pawns that have NO lord at all
+            // This prevents disrupting pawns that are already correctly assigned by the base raid worker
+            // Reassigning pawns from one lord to another causes job cancellation loops
             foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
             {
-                if (pawn.Faction == faction && pawn.GetLord() != assaultLord)
+                if (pawn.Faction == faction && pawn.GetLord() == null)
                 {
-                    Lord currentLord = pawn.GetLord();
-                    if (currentLord != null)
-                    {
-                        currentLord.RemovePawn(pawn);
-                    }
+                    // Only assign unassigned pawns to avoid job conflicts
                     assaultLord.AddPawn(pawn);
-                    Log.Message($"[DebtCollector] Assigned pawn {pawn.Name} to assault lord for collections raid");
+                    Log.Message($"[DebtCollector] Assigned unassigned pawn {pawn.Name} to assault lord for collections raid");
                 }
             }
         }
