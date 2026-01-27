@@ -129,8 +129,8 @@ Access via Options → Mod Settings → Debt Collector Settings
 | Payment Window | 24 hours | Time to pay after interest demand |
 | Grace Missed Payments | 2 | Missed payments before collections |
 | Collections Deadline | 18 hours | Time to pay after collections notice |
-| Min Settlement Distance | 4 tiles | Minimum distance for Ledger settlement |
-| Max Settlement Distance | 15 tiles | Maximum distance for Ledger settlement |
+| Min Settlement Distance | 3 tiles | Minimum distance for Ledger settlement |
+| Max Settlement Distance | 4 tiles | Maximum distance for Ledger settlement |
 | Tribute Multiplier | 1.5x | Multiplier for tribute amount |
 | Raid Strength Multiplier | 1.5x | Multiplier for raid points |
 

@@ -13,8 +13,8 @@ namespace DebtCollector
         public const int DEFAULT_LOAN_TERM_DAYS = 30; // Loan must be paid off within this many days
         public const float DEFAULT_PRINCIPAL_REDUCTION_PER_PAYMENT = 0.05f; // 5% of original principal per payment
         public const int DEFAULT_MISSED_PAYMENT_FEE = 50; // Fixed silver fee per missed payment checkpoint
-        public const int DEFAULT_MIN_SETTLEMENT_DISTANCE = 2;
-        public const int DEFAULT_MAX_SETTLEMENT_DISTANCE = 8;
+        public const int DEFAULT_MIN_SETTLEMENT_DISTANCE = 3;
+        public const int DEFAULT_MAX_SETTLEMENT_DISTANCE = 4;
         public const float DEFAULT_TRIBUTE_MULTIPLIER = 1.5f;
         public const float DEFAULT_RAID_STRENGTH_MULTIPLIER = 1.5f;
         public const int DEFAULT_MAX_LOAN_AMOUNT = 10000; // Maximum loan amount allowed (0 = unlimited)
