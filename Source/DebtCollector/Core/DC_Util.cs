@@ -368,5 +368,53 @@ namespace DebtCollector
 
             return null;
         }
+
+        /// <summary>
+        /// Gets available loan tiers based on the maxLoanAmount setting.
+        /// Filters base tiers and adds extended tiers if maxLoanAmount allows.
+        /// </summary>
+        public static List<int> GetAvailableLoanTiers()
+        {
+            var settings = DebtCollectorMod.Settings;
+            int maxLoanAmount = settings?.maxLoanAmount ?? DC_Constants.DEFAULT_MAX_LOAN_AMOUNT;
+            
+            // Start with base tiers
+            List<int> tiers = new List<int>(DC_Constants.LOAN_TIERS);
+            
+            // If maxLoanAmount is set and less than highest base tier, filter
+            if (maxLoanAmount > 0 && maxLoanAmount < 5000)
+            {
+                tiers = tiers.Where(t => t <= maxLoanAmount).ToList();
+            }
+            // If maxLoanAmount is greater than highest base tier, add extended tiers
+            else if (maxLoanAmount > 5000)
+            {
+                // Add extended tiers: 10k, 15k, 20k, 25k, 30k, 40k, 50k, etc. up to maxLoanAmount
+                int[] extendedTiers = { 10000, 15000, 20000, 25000, 30000, 40000, 50000 };
+                foreach (int tier in extendedTiers)
+                {
+                    if (tier <= maxLoanAmount && !tiers.Contains(tier))
+                    {
+                        tiers.Add(tier);
+                    }
+                }
+            }
+            // If maxLoanAmount is 0 (unlimited), add extended tiers up to a reasonable cap
+            else if (maxLoanAmount == 0)
+            {
+                int[] extendedTiers = { 10000, 15000, 20000, 25000, 30000, 40000, 50000 };
+                foreach (int tier in extendedTiers)
+                {
+                    if (!tiers.Contains(tier))
+                    {
+                        tiers.Add(tier);
+                    }
+                }
+            }
+            
+            // Sort and return
+            tiers.Sort();
+            return tiers;
+        }
     }
 }

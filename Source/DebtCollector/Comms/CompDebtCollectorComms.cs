@@ -141,7 +141,7 @@ namespace DebtCollector
         {
             List<FloatMenuOption> options = new List<FloatMenuOption>();
 
-            foreach (int tier in DC_Constants.LOAN_TIERS)
+            foreach (int tier in DC_Util.GetAvailableLoanTiers())
             {
                 int amount = tier; // Capture for closure
                 string label = "DC_FloatMenu_LoanTier".Translate(amount);
