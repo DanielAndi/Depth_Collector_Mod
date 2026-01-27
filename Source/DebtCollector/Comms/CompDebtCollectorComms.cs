@@ -68,24 +68,33 @@ namespace DebtCollector
                 };
             }
 
-            // Pay Interest button
-            if (contract.IsActive && contract.status != DebtStatus.Collections && contract.interestDemandSent)
+            // Pay Interest button - available whenever there's interest to pay (not just when demand sent)
+            if (contract.IsActive && contract.status != DebtStatus.Collections)
             {
                 int currentTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
                 int interestDue = contract.GetCurrentInterestDue(currentTick);
-                yield return new Command_Action
+                
+                // Only show if there's actually interest to pay
+                if (interestDue > 0)
                 {
-                    defaultLabel = "DC_Gizmo_PayInterest".Translate() + $" ({interestDue})",
-                    defaultDesc = "DC_Gizmo_PayInterest_Desc".Translate(),
-                    icon = ContentFinder<Texture2D>.Get("Things/Item/Resource/Silver/Silver_c", false) ?? BaseContent.BadTex,
-                    action = () =>
+                    string label = contract.interestDemandSent 
+                        ? "DC_Gizmo_PayInterest".Translate() + $" ({interestDue}) - DUE!"
+                        : "DC_Gizmo_PayInterest".Translate() + $" ({interestDue})";
+                    
+                    yield return new Command_Action
                     {
-                        if (!worldComp.TryPayInterest(out string reason))
+                        defaultLabel = label,
+                        defaultDesc = "DC_Gizmo_PayInterest_Desc".Translate(),
+                        icon = ContentFinder<Texture2D>.Get("Things/Item/Resource/Silver/Silver_c", false) ?? BaseContent.BadTex,
+                        action = () =>
                         {
-                            Messages.Message(reason, MessageTypeDefOf.RejectInput);
+                            if (!worldComp.TryPayInterest(out string reason))
+                            {
+                                Messages.Message(reason, MessageTypeDefOf.RejectInput);
+                            }
                         }
-                    }
-                };
+                    };
+                }
             }
 
             // Pay Full Balance button

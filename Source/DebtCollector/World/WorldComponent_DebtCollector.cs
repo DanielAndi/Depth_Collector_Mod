@@ -83,6 +83,19 @@ namespace DebtCollector
                 // Already in Collections from loan expiry — fall through to process raid deadline
             }
 
+            // Check if missed payments exceed grace limit (FR-012)
+            if (contract.IsActive && contract.status != DebtStatus.Collections)
+            {
+                int missedCount = contract.GetMissedPaymentsCount(currentTick);
+                int graceLimit = DebtCollectorMod.Settings?.graceMissedPayments ?? DC_Constants.DEFAULT_GRACE_MISSED_PAYMENTS;
+                
+                if (missedCount > graceLimit)
+                {
+                    TriggerGraceLimitExceeded(currentTick, missedCount, graceLimit);
+                    return;
+                }
+            }
+
             // Process interest and collections deadlines
             if (contract.status == DebtStatus.Current || contract.status == DebtStatus.Delinquent)
             {
@@ -181,6 +194,29 @@ namespace DebtCollector
             );
             
             Log.Message($"[DebtCollector] Loan term expired. Full payment of {totalOwed} required within {deadlineHours} hours.");
+        }
+
+        private void TriggerGraceLimitExceeded(int currentTick, int missedCount, int graceLimit)
+        {
+            // Grace limit exceeded - require full payment immediately (FR-012)
+            var settings = DebtCollectorMod.Settings;
+            float deadlineHours = settings?.collectionsDeadlineHours ?? DC_Constants.DEFAULT_COLLECTIONS_DEADLINE_HOURS;
+            
+            contract.TriggerCollections(currentTick);
+            
+            // Send letter about grace limit exceeded
+            int totalOwed = contract.GetTotalOwed(currentTick);
+            DC_Util.SendLetter(
+                "DC_Letter_GraceLimitExceeded_Title",
+                "DC_Letter_GraceLimitExceeded_Text",
+                LetterDefOf.ThreatBig,
+                null,
+                missedCount,
+                graceLimit,
+                totalOwed
+            );
+            
+            Log.Message($"[DebtCollector] Grace limit exceeded ({missedCount} missed > {graceLimit} allowed). Full payment of {totalOwed} required within {deadlineHours} hours.");
         }
 
         private void ProcessCollectionsDeadline(int currentTick)
@@ -357,6 +393,14 @@ namespace DebtCollector
                 return false;
             }
 
+            // Check max loan amount (FR-004)
+            int maxLoan = DebtCollectorMod.Settings?.maxLoanAmount ?? DC_Constants.DEFAULT_MAX_LOAN_AMOUNT;
+            if (maxLoan > 0 && amount > maxLoan)
+            {
+                failReason = "DC_Message_ExceedsMaxLoan".Translate(amount, maxLoan);
+                return false;
+            }
+
             Faction ledgerFaction = DC_Util.GetLedgerFaction();
             if (ledgerFaction == null)
             {
@@ -430,6 +474,14 @@ namespace DebtCollector
             if (contract.IsActive)
             {
                 failReason = "DC_Message_AlreadyHaveLoan".Translate();
+                return false;
+            }
+
+            // Check max loan amount (FR-004)
+            int maxLoan = DebtCollectorMod.Settings?.maxLoanAmount ?? DC_Constants.DEFAULT_MAX_LOAN_AMOUNT;
+            if (maxLoan > 0 && amount > maxLoan)
+            {
+                failReason = "DC_Message_ExceedsMaxLoan".Translate(amount, maxLoan);
                 return false;
             }
 

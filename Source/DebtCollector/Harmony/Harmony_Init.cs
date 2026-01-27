@@ -226,26 +226,34 @@ namespace DebtCollector
                 });
             }
 
-            // Add "Pay Interest" gizmo (if applicable)
-            if (contract.IsActive && contract.status != DebtStatus.Collections && contract.interestDemandSent)
+            // Add "Pay Interest" gizmo - available whenever there's interest to pay
+            if (contract.IsActive && contract.status != DebtStatus.Collections)
             {
                 int currentTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
                 int interestDue = contract.GetCurrentInterestDue(currentTick);
                 int caravanSilver = DC_Util.CountCaravanSilver(caravan);
                 
-                gizmos.Add(new Command_Action
+                // Only show if there's actually interest to pay
+                if (interestDue > 0)
                 {
-                    defaultLabel = "DC_Gizmo_PayInterest".Translate() + $" ({interestDue})",
-                    defaultDesc = "DC_Gizmo_PayInterest_Desc".Translate() + $"\n\nCaravan silver: {caravanSilver}",
-                    icon = ContentFinder<Texture2D>.Get("Things/Item/Resource/Silver/Silver_c", false) ?? BaseContent.BadTex,
-                    action = () =>
+                    string label = contract.interestDemandSent 
+                        ? "DC_Gizmo_PayInterest".Translate() + $" ({interestDue}) - DUE!"
+                        : "DC_Gizmo_PayInterest".Translate() + $" ({interestDue})";
+                    
+                    gizmos.Add(new Command_Action
                     {
-                        if (!worldComp.TryPayInterestFromCaravan(caravan, out string reason))
+                        defaultLabel = label,
+                        defaultDesc = "DC_Gizmo_PayInterest_Desc".Translate() + $"\n\nCaravan silver: {caravanSilver}",
+                        icon = ContentFinder<Texture2D>.Get("Things/Item/Resource/Silver/Silver_c", false) ?? BaseContent.BadTex,
+                        action = () =>
                         {
-                            Messages.Message(reason, MessageTypeDefOf.RejectInput);
+                            if (!worldComp.TryPayInterestFromCaravan(caravan, out string reason))
+                            {
+                                Messages.Message(reason, MessageTypeDefOf.RejectInput);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             // Add "Pay Full Balance" gizmo (if there's active debt)

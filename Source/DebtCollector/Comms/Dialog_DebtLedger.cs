@@ -54,47 +54,24 @@ namespace DebtCollector
 
             if (contract.IsActive)
             {
-                // Principal
+                // Amount Borrowed (original principal - never changes)
                 Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                    "DC_Dialog_Principal".Translate(contract.principal));
+                    "DC_Dialog_AmountBorrowed".Translate(contract.originalPrincipal));
                 y += lineHeight;
 
-                // Interest Rate
-                var settings = DebtCollectorMod.Settings;
-                float interestRatePerDay = settings?.interestRatePerDay ?? DC_Constants.DEFAULT_INTEREST_RATE_PER_DAY;
-                float interestRatePercent = interestRatePerDay * 100f;
+                // Total Interest for Term (fixed at loan start)
                 Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                    "DC_Dialog_InterestRate".Translate(interestRatePercent.ToString("F2")));
+                    "DC_Dialog_TotalInterest".Translate(contract.totalInterestForTerm));
                 y += lineHeight;
 
-                // Accrued Interest (computed - base interest only for display, excluding penalty)
-                double baseInterest = contract.principal * interestRatePerDay * contract.GetElapsedDays(currentTick);
-                Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                    "DC_Dialog_Interest".Translate((int)System.Math.Ceiling(baseInterest)));
-                y += lineHeight;
-
-                // Penalty Interest (when delinquent)
-                double penaltyInterest = contract.GetPenaltyInterest(currentTick);
-                if (penaltyInterest > 0)
-                {
-                    float penaltyRatePerDay = DebtCollectorMod.Settings?.latePenaltyRatePerDay ?? DC_Constants.DEFAULT_LATE_PENALTY_RATE_PER_DAY;
-                    float penaltyRatePercent = penaltyRatePerDay * 100f;
-                    GUI.color = Color.yellow;
-                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                        "DC_Dialog_PenaltyInterest".Translate((int)System.Math.Ceiling(penaltyInterest), penaltyRatePercent.ToString("F1")));
-                    GUI.color = Color.white;
-                    y += lineHeight;
-                }
-
-                // Late Fees (missed payment fees)
+                // Late Fees (if any)
                 int lateFees = contract.GetMissedFees(currentTick);
                 if (lateFees > 0)
                 {
                     int missedCount = contract.GetMissedPaymentsCount(currentTick);
-                    int feePerMissed = DebtCollectorMod.Settings?.missedPaymentFee ?? DC_Constants.DEFAULT_MISSED_PAYMENT_FEE;
                     GUI.color = Color.yellow;
                     Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                        "DC_Dialog_LateFees".Translate(lateFees, missedCount, feePerMissed));
+                        "DC_Dialog_LateFees_Simple".Translate(lateFees, missedCount));
                     GUI.color = Color.white;
                     y += lineHeight;
                 }
@@ -102,8 +79,10 @@ namespace DebtCollector
                 // Payments Made
                 if (contract.paymentsMade > 0)
                 {
+                    GUI.color = Color.green;
                     Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
                         "DC_Dialog_PaymentsMade".Translate(contract.paymentsMade));
+                    GUI.color = Color.white;
                     y += lineHeight;
                 }
 
@@ -114,6 +93,20 @@ namespace DebtCollector
                     "DC_Dialog_TotalOwed".Translate(totalOwed));
                 Text.Font = GameFont.Small;
                 y += lineHeight + 10f;
+
+                // Payment Schedule Info
+                int remainingPayments = contract.GetRemainingPaymentCount(currentTick);
+                int requiredPayment = contract.GetCurrentInterestDue(currentTick);
+                int totalPayments = contract.GetTotalPaymentCount();
+                int paymentsDone = contract.paymentsMadeCount;
+                
+                Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                    "DC_Dialog_PaymentSchedule".Translate(paymentsDone, totalPayments));
+                y += lineHeight;
+                
+                Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                    "DC_Dialog_RequiredPayment".Translate(requiredPayment));
+                y += lineHeight;
 
                 // Next Due
                 if (contract.status != DebtStatus.Collections)
@@ -127,11 +120,14 @@ namespace DebtCollector
                         : "overdue";
                     
                     string dueLabel = contract.interestDemandSent 
-                        ? "Payment Deadline" 
-                        : "Next Interest Due";
+                        ? "DC_Dialog_PaymentDeadline".Translate()
+                        : "DC_Dialog_NextPaymentDue".Translate();
                     
+                    Color dueColor = contract.interestDemandSent ? Color.yellow : Color.white;
+                    GUI.color = dueColor;
                     Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
                         $"{dueLabel}: {timeText}");
+                    GUI.color = Color.white;
                     y += lineHeight;
                 }
                 else
@@ -149,38 +145,22 @@ namespace DebtCollector
                     y += lineHeight;
                 }
 
-                // Missed Payments count (only show if no late fees displayed, to avoid redundancy)
-                int missedPaymentsCount = contract.GetMissedPaymentsCount(currentTick);
-                int displayedLateFees = contract.GetMissedFees(currentTick);
-                if (missedPaymentsCount > 0 && displayedLateFees <= 0)
-                {
-                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                        "DC_Dialog_MissedPayments_Count".Translate(missedPaymentsCount));
-                    y += lineHeight;
-                }
-
                 // Loan Term Information
                 if (contract.loanTermDays > 0)
                 {
                     int daysRemaining = contract.DaysUntilLoanExpiry(currentTick);
-                    if (daysRemaining >= 0)
+                    if (contract.IsLoanTermExpired(currentTick))
                     {
-                        if (contract.IsLoanTermExpired(currentTick))
-                        {
-                            GUI.color = Color.red;
-                            Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                                "DC_Dialog_LoanExpired".Translate());
-                            GUI.color = Color.white;
-                        }
-                        else
-                        {
-                            Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                                "DC_Dialog_DaysUntilExpiry".Translate(daysRemaining));
-                        }
-                        y += lineHeight;
+                        GUI.color = Color.red;
+                        Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                            "DC_Dialog_LoanExpired".Translate());
+                        GUI.color = Color.white;
                     }
-                    Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
-                        "DC_Dialog_LoanTerm".Translate(contract.loanTermDays));
+                    else if (daysRemaining >= 0)
+                    {
+                        Widgets.Label(new Rect(0, y, inRect.width, lineHeight), 
+                            "DC_Dialog_DaysUntilExpiry".Translate(daysRemaining));
+                    }
                     y += lineHeight;
                 }
             }
