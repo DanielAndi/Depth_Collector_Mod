@@ -1,6 +1,6 @@
 # Debt Collector - RimWorld Mod
 
-A RimWorld 1.4/1.5 mod that adds "The Ledger" faction, a group of ruthless financiers who offer loans to colonies in need. Borrow silver, pay interest on time, or face brutal collections raids.
+A RimWorld 1.4/1.5/1.6 mod that adds "The Ledger" faction, a group of ruthless financiers who offer loans to colonies in need. Borrow silver, pay interest on time, or face brutal collections raids.
 
 ## Features
 
@@ -145,8 +145,10 @@ DebtCollector/
 ├── Defs/
 │   ├── FactionDef/
 │   │   └── DebtCollector_FactionDef.xml
-│   └── IncidentDef/
-│       └── DebtCollector_Incidents.xml
+│   ├── IncidentDef/
+│   │   └── DebtCollector_Incidents.xml
+│   └── WorldGenStepDef/
+│       └── DebtCollector_WorldGenStep.xml
 ├── Languages/
 │   └── English/
 │       └── Keyed/
@@ -166,6 +168,13 @@ DebtCollector/
 ```
 
 ## Troubleshooting
+
+### WorldGenStep / MissingMethodException Error
+If you see:
+```text
+Exception loading def from file DebtCollector_WorldGenStep.xml: ... MissingMethodException: Default constructor not found for type Verse.WorldGenStep
+```
+**Fix:** Rebuild the mod (`dotnet build -c Release` in `Source/DebtCollector`) and ensure RimWorld loads the updated `Assemblies/DebtCollector.dll`. The def requires `WorldGenStep_LedgerSettlement` with a parameterless constructor; that is included in the current build. If you run from `Mods/Depth_Collector`, copy the built DLL (and optional `.pdb`) from `Assemblies/` into that mod’s `Assemblies/` folder.
 
 ### Settlement Not Spawning
 - Check log for warnings about tile finding

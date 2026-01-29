@@ -1,0 +1,12 @@
+# IDE / editor
+.vs/
+.idea/
+*.csproj.user
+*.suo
+
+# Build outputs (keep mod's top-level Assemblies/)
+Source/**/bin/
+Source/**/obj/
+
+# NuGet
+**/packages/

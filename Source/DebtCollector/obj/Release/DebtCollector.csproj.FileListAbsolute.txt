@@ -1,7 +1,7 @@
+/home/danielg/Documents/Projects/Depth_Collector_Mod/Assemblies/DebtCollector.dll
+/home/danielg/Documents/Projects/Depth_Collector_Mod/Assemblies/DebtCollector.pdb
 /home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/obj/Release/DebtCollector.csproj.AssemblyReference.cache
 /home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/obj/Release/DebtCollector.GeneratedMSBuildEditorConfig.editorconfig
 /home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/obj/Release/DebtCollector.csproj.CoreCompileInputs.cache
-/home/danielg/Documents/Projects/Depth_Collector_Mod/Assemblies/DebtCollector.dll
-/home/danielg/Documents/Projects/Depth_Collector_Mod/Assemblies/DebtCollector.pdb
 /home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/obj/Release/DebtCollector.dll
 /home/danielg/Documents/Projects/Depth_Collector_Mod/Source/DebtCollector/obj/Release/DebtCollector.pdb

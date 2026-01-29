@@ -11,9 +11,12 @@ namespace DebtCollector
     /// </summary>
     public class WorldComponent_DebtCollector : WorldComponent
     {
-        private static bool loggedPostLoadInit;
-        private static bool loggedSettlementFailure;
-        private static bool loggedSettlementRebuild;
+        // These flags are reset when a new world component is created (new game or load)
+        private bool loggedPostLoadInit;
+        private bool loggedSettlementFailure;
+        private bool loggedSettlementRebuild;
+        private bool loggedNoPlayerStartTile;
+        private bool loggedFirstTick;
 
         private DebtContract contract;
         private bool settlementPlaced;
@@ -23,6 +26,10 @@ namespace DebtCollector
         private const int RAID_CHECK_INTERVAL = 2500;
         private int lastRaidCheckTick;
 
+        // Tick interval for checking settlement placement (every ~60 in-game seconds)
+        private const int SETTLEMENT_CHECK_INTERVAL = 1500; // 60 seconds
+        private int lastSettlementCheckTick;
+
         public DebtContract Contract => contract;
         public bool SettlementPlaced => settlementPlaced;
         public int LedgerSettlementTile => ledgerSettlementTile;
@@ -30,6 +37,7 @@ namespace DebtCollector
         public WorldComponent_DebtCollector(World world) : base(world)
         {
             contract = new DebtContract();
+            Log.Message("[DebtCollector] WorldComponent_DebtCollector created for new world.");
         }
 
         public static WorldComponent_DebtCollector Get()
@@ -45,6 +53,47 @@ namespace DebtCollector
                 return;
 
             int currentTick = Find.TickManager.TicksGame;
+
+            // Log first tick to verify ticking is working
+            if (!loggedFirstTick)
+            {
+                loggedFirstTick = true;
+                Log.Message($"[DebtCollector] WorldComponentTick first run. settlementPlaced={settlementPlaced}, currentTick={currentTick}");
+                
+                // Immediately check on first tick - don't wait for interval
+                if (!settlementPlaced)
+                {
+                    lastSettlementCheckTick = currentTick;
+                    Log.Message($"[DebtCollector] First tick - immediately checking for settlement placement");
+                    ResolveFactionAndSettlement("WorldComponentTick_First");
+                }
+            }
+
+            // Periodically check if settlement needs to be placed (fallback for standard playthroughs)
+            // Check every tick for the first 5 seconds (12500 ticks), then every 500 ticks for next 5 seconds, then normal interval
+            int checkInterval;
+            if (currentTick < 12500) // First 5 seconds - check every tick
+            {
+                checkInterval = 1;
+            }
+            else if (currentTick < 25000) // Next 5 seconds - check every 500 ticks
+            {
+                checkInterval = 500;
+            }
+            else // After 10 seconds - normal interval
+            {
+                checkInterval = SETTLEMENT_CHECK_INTERVAL;
+            }
+            
+            if (!settlementPlaced && currentTick - lastSettlementCheckTick >= checkInterval)
+            {
+                lastSettlementCheckTick = currentTick;
+                if (currentTick < 12500 || currentTick % 500 == 0) // Log frequently during first 5 seconds, then every 500 ticks
+                {
+                    Log.Message($"[DebtCollector] Periodic settlement check at tick {currentTick} (interval={checkInterval})");
+                }
+                ResolveFactionAndSettlement("WorldComponentTick");
+            }
 
             // Check if contract is fully paid (safety check)
             if (contract.IsActive)
@@ -838,27 +887,62 @@ namespace DebtCollector
                 }
             }
 
-            // Find player start tile
+            // Find player start tile - try multiple sources
             int playerStartTile = -1;
-            if (Find.GameInitData != null)
+            
+            // First, check if there's a player settlement on the world map (most reliable)
+            // Use FactionManager to find player faction safely
+            Faction playerFaction = Find.FactionManager?.AllFactions?.FirstOrDefault(f => f.IsPlayer);
+            if (playerFaction != null)
+            {
+                foreach (Settlement settlement in Find.WorldObjects.Settlements)
+                {
+                    if (settlement.Faction == playerFaction)
+                    {
+                        playerStartTile = settlement.Tile;
+                        Log.Message($"[DebtCollector] Found player settlement at tile {playerStartTile}");
+                        break;
+                    }
+                }
+            }
+            
+            // If no player settlement, try GameInitData (only available during game init)
+            if (playerStartTile < 0 && Find.GameInitData != null && Find.GameInitData.startingTile >= 0)
             {
                 playerStartTile = Find.GameInitData.startingTile;
+                Log.Message($"[DebtCollector] Using GameInitData.startingTile: {playerStartTile}");
             }
 
-            foreach (Settlement settlement in Find.WorldObjects.Settlements)
+            // If still no valid tile, check if there are any player maps
+            if (playerStartTile < 0 && Find.Maps != null)
             {
-                if (settlement.Faction == Faction.OfPlayer)
+                foreach (Map map in Find.Maps)
                 {
-                    playerStartTile = settlement.Tile;
-                    break;
+                    if (map.IsPlayerHome && map.Tile >= 0)
+                    {
+                        playerStartTile = map.Tile;
+                        Log.Message($"[DebtCollector] Found player home map at tile {playerStartTile}");
+                        break;
+                    }
                 }
             }
 
             if (playerStartTile < 0)
             {
-                Log.Warning("[DebtCollector] Cannot find player starting settlement");
+                // In standard playthroughs, player hasn't selected starting location yet
+                // Only log once to avoid spam, then keep trying periodically
+                if (!loggedNoPlayerStartTile)
+                {
+                    loggedNoPlayerStartTile = true;
+                    int settlementCount = Find.WorldObjects?.Settlements?.Count() ?? 0;
+                    int mapCount = Find.Maps?.Count ?? 0;
+                    Log.Message($"[DebtCollector] Player starting location not found yet. Settlements: {settlementCount}, Maps: {mapCount}. Will retry periodically.");
+                }
                 return;
             }
+
+            // Reset the flag once we have a valid tile
+            loggedNoPlayerStartTile = false;
 
             // Find a suitable tile
             var settings = DebtCollectorMod.Settings;
@@ -932,6 +1016,7 @@ namespace DebtCollector
             Scribe_Values.Look(ref settlementPlaced, "settlementPlaced", false);
             Scribe_Values.Look(ref ledgerSettlementTile, "ledgerSettlementTile", -1);
             Scribe_Values.Look(ref lastRaidCheckTick, "lastRaidCheckTick", 0);
+            Scribe_Values.Look(ref lastSettlementCheckTick, "lastSettlementCheckTick", 0);
 
             // Ensure contract is never null after loading
             if (contract == null)
@@ -957,11 +1042,27 @@ namespace DebtCollector
         public void ResolveFactionAndSettlement(string context)
         {
             if (Find.World == null || Find.WorldObjects == null || Find.FactionManager == null)
+            {
+                Log.Message($"[DebtCollector] {context}: World/WorldObjects/FactionManager not ready. World={Find.World != null}, WorldObjects={Find.WorldObjects != null}, FactionManager={Find.FactionManager != null}");
                 return;
+            }
 
             Faction ledgerFaction = DC_Util.GetLedgerFaction();
             if (ledgerFaction == null)
+            {
+                // More detailed diagnostics
+                FactionDef def = DC_DefOf.DC_Faction_TheLedger;
+                Log.Warning($"[DebtCollector] {context}: Ledger faction not found. DefOf.DC_Faction_TheLedger={def?.defName ?? "NULL"}. Total factions: {Find.FactionManager.AllFactions.Count()}");
+                
+                // List all factions for debugging
+                foreach (Faction f in Find.FactionManager.AllFactions)
+                {
+                    Log.Message($"[DebtCollector] Found faction: {f.Name} (def={f.def?.defName})");
+                }
                 return;
+            }
+
+            Log.Message($"[DebtCollector] {context}: Ledger faction found: {ledgerFaction.Name}");
 
             // If flagged as placed but no settlement exists, allow re-placement
             bool foundSettlement = false;

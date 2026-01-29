@@ -7,10 +7,11 @@
     <pawnSingular>collector</pawnSingular>
     <pawnsPlural>collectors</pawnsPlural>
     <listOrderPriority>50</listOrderPriority>
-    <settlementGenerationWeight>1</settlementGenerationWeight>
+    <settlementGenerationWeight>0</settlementGenerationWeight>
     <requiredCountAtGameStart>1</requiredCountAtGameStart>
     <maxCountAtGameStart>1</maxCountAtGameStart>
-    <canMakeRandomly>false</canMakeRandomly>
+    <maxConfigurableAtWorldCreation>1</maxConfigurableAtWorldCreation>
+    <canMakeRandomly>true</canMakeRandomly>
     <canStageAttacks>true</canStageAttacks>
     <leaderTitle>ledgermaster</leaderTitle>
     <leaderForceGenerateNewPawn>true</leaderForceGenerateNewPawn>
