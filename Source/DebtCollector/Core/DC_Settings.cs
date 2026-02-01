@@ -121,7 +121,7 @@ namespace DebtCollector
 
             listing.Label("DC_Settings_MaxLoanAmount".Translate() + ": " + (maxLoanAmount > 0 ? maxLoanAmount.ToString() : "Unlimited"));
             listing.Label("DC_Settings_MaxLoanAmount_Desc".Translate());
-            maxLoanAmount = (int)listing.Slider(maxLoanAmount, 0f, 20000f);
+            maxLoanAmount = (int)listing.Slider(maxLoanAmount, 0f, 100000f);
             listing.Gap();
 
             listing.Label("DC_Settings_LoanTermDays".Translate() + ": " + loanTermDays);

@@ -389,8 +389,8 @@ namespace DebtCollector
             // If maxLoanAmount is greater than highest base tier, add extended tiers
             else if (maxLoanAmount > 5000)
             {
-                // Add extended tiers: 10k, 15k, 20k, 25k, 30k, 40k, 50k, etc. up to maxLoanAmount
-                int[] extendedTiers = { 10000, 15000, 20000, 25000, 30000, 40000, 50000 };
+                // Add extended tiers: 10k, 15k, 20k, ... up to 100k, etc. up to maxLoanAmount
+                int[] extendedTiers = { 10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 75000, 100000 };
                 foreach (int tier in extendedTiers)
                 {
                     if (tier <= maxLoanAmount && !tiers.Contains(tier))
@@ -399,10 +399,10 @@ namespace DebtCollector
                     }
                 }
             }
-            // If maxLoanAmount is 0 (unlimited), add extended tiers up to a reasonable cap
+            // If maxLoanAmount is 0 (unlimited), add extended tiers up to 100k
             else if (maxLoanAmount == 0)
             {
-                int[] extendedTiers = { 10000, 15000, 20000, 25000, 30000, 40000, 50000 };
+                int[] extendedTiers = { 10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 75000, 100000 };
                 foreach (int tier in extendedTiers)
                 {
                     if (!tiers.Contains(tier))
